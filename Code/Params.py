@@ -27,21 +27,38 @@ def get_params(updates):
 				'xi' : 0.9,
 				'rho' : 0.9,
 				'strikes' : np.arange(50, 150, 1),
-				'stocks' : ['SPY'],
+				'stocks' : ['AAPL'],
 				'dates' : ['2021-06-18'],
 				'trade_dates' : [pd.to_datetime('2021-05-19')],
 				'num_times' : 10,
 				'Sides' : ['Long'],
 				'file_source' : 'yahoo',
-				'x0' : {'BlackScholes' : [0.3],
-						'Merton' : [0.15, 1, 0.1, 1],
-						'Heston' : [-0.6, 4, 0.02, 0.9]},
-				'bounds' : {'BlackScholes' : [(0.01, np.inf)],
-						'Merton' : [(0.01, np.inf) , (0.01, 2), (1e-2, np.inf) , (0.01, 5)],
-						'Heston' : [(-0.999, 0.999), (0.01, np.inf), (0.01, np.inf), (0.01, np.inf)]}}
+				'x0' : {'BlackScholes' : {'sigma':0.3},
+					'Merton' : {'sigma':0.15, 'm':1, 'v':0.1, 'lambda':1},
+					'Heston' : {'rho':-0.6, 'kappa':4, 'theta':0.02, 'xi':0.9}},
+				'bounds' : {'BlackScholes' : {'sigma':(0.01, np.inf)},
+					'Merton' : {'sigma':(0.01, np.inf) , 'm':(0.01, 2), 'v':(1e-2, np.inf) , 'lambda':(0.01, 5)},
+					'Heston' : {'rho':(-0.999, 0.999), 'kappa':(0.01, np.inf), 'theta':(0.01, np.inf), 'xi':(0.01, np.inf)}}}
 
 	params['dt'] = 1 / 365
 
 	params.update(updates)
 
 	return(params)
+
+def settings(params):
+	vals = {}
+	vals['source'] = params['file_source']
+	vals['stock_col'] = ['Underlying_Price', 'close_price'][vals['source'] == 'rhood']
+	vals['tick_col'] = ['Ticker', 'symbol'][vals['source'] == 'rhood']
+	vals['type_col'] = ['Type', 'Direction'][vals['source'] == 'rhood']
+	vals['strike_col'] = ['Strike', 'strike_price'][vals['source'] == 'rhood']
+	vals['exp_col'] = ['Expiry', 'expiration_date'][vals['source'] == 'rhood']
+	vals['dt_col'] = ['Quote_Time', 'begins_at'][vals['source'] == 'rhood']
+	vals['dt_form'] = ['%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%SZ'][vals['source'] == 'rhood']
+	return(vals)
+
+global vals
+vals = settings(get_params({}))
+
+

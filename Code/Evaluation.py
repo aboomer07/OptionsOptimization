@@ -7,6 +7,8 @@ import pandas as pd
 import datetime as dt
 import matplotlib.pyplot as plt
 import seaborn as sns
+from Params import get_params, vals
+from Returns import Returns
 
 ################################################################################
 # Define Optimization Results Evaluation Class
@@ -36,7 +38,7 @@ class Opt_Eval(Returns):
 		self.v0 = params['v0']
 		
 	def get_combo(self, combo_dict):
-		self.combo_dict = combo_dict.copy()
+		self.combo = combo_dict.copy()
 
 	def monte_price(self, model, row, strike, leg):
 		sim = self.simulate(model, row)
@@ -47,8 +49,22 @@ class Opt_Eval(Returns):
 
 		return(p)
 
-	def combo_return(self):
-		pass
+	def combo_return(self, test_data):
+		df = test_data.copy(deep=True)
+		self.combo['Act_Price'] = np.empty(len(self.combo['Legs']))
+		self.combo['Profit'] = np.empty(len(self.combo['Legs']))
+		cols = [vals['strike_col'], vals['tick_col'],
+			vals['type_col']]
+		df['Unique'] = df[cols].apply(lambda x: str(x[cols[0]]) + "_" + x[cols[1]] + "_" + x[cols[2]], axis=1)
+
+		conds = {}
+		for i in range(len(self.combo['Legs'])):
+			cond_str = str(self.combo['Strikes'][i]) + "_" + self.combo['Ticker'] + "_" + self.combo['Contracts'][i].type.lower()
+			self.combo['Act_Price'][i] = df[df['Unique'] == cond_str]['Last'].values[0]
+			payoff = self.combo['Act_Price'][i] - self.combo['Last'][i]
+			if self.combo['Legs'][i][0] == 's':
+				payoff = payoff * -1
+			self.combo['Profit'][i] = payoff
 
 	def sharpe(self):
 		returns = self.combo_return()
@@ -56,11 +72,11 @@ class Opt_Eval(Returns):
 		return(np.mean(returns - self.r)/std)
 
 	def get_delta(self, model, ds = 1e-2):
-		high, low = self.combo_dict.copy(), self.combo_dict.copy()
-		high[self.stock_col] += ds
-		low[self.stock_col] -= ds
+		high, low = self.combo.copy(), self.combo.copy()
+		high[vals['stock_col']] += ds
+		low[vals['stock_col']] -= ds
 		delta = 0
-		for i in range(len(self.combo_dict['Legs'])):
+		for i in range(len(self.combo['Legs'])):
 			high_price = self.monte_price(model, high, high['Strikes'][i], high['Legs'][i])
 			low_price = self.monte_price(model, high, low['Strikes'][i], low['Legs'][i])
 			delta += ((high_price - low_price)/(2 * ds))
@@ -68,23 +84,23 @@ class Opt_Eval(Returns):
 		return(delta)
 
 	def get_gamma(self, model, ds = 1e-2):
-		high, low = self.combo_dict.copy(), self.combo_dict.copy()
-		high[self.stock_col] += ds
-		low[self.stock_col] -= ds
+		high, low = self.combo.copy(), self.combo.copy()
+		high[vals['stock_col']] += ds
+		low[vals['stock_col']] -= ds
 		gamma = 0
-		for i in range(len(self.combo_dict['Legs'])):
+		for i in range(len(self.combo['Legs'])):
 			high_price = self.monte_price(model, high, high['Strikes'][i], high['Legs'][i])
 			low_price = self.monte_price(model, high, low['Strikes'][i], low['Legs'][i])
-			gamma += ((high_price - (2 * self.combo_dict['Last'][i]) + low_price)/(ds**2))
+			gamma += ((high_price - (2 * self.combo['Last'][i]) + low_price)/(ds**2))
 
 		return(gamma)
 
 	def get_theta(self, model, dt=1e-1):
-		high, low = self.combo_dict.copy(), self.combo_dict.copy()
+		high, low = self.combo.copy(), self.combo.copy()
 		high['T'] += dt
 		low['T'] -= dt
 		theta = 0
-		for i in range(len(self.combo_dict['Legs'])):
+		for i in range(len(self.combo['Legs'])):
 			high_price = self.monte_price(model, high, high['Strikes'][i], high['Legs'][i])
 			low_price = self.monte_price(model, high, low['Strikes'][i], low['Legs'][i])
 			theta += -1*((high_price - low_price)/(2 * dt))

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 from scipy.stats import norm
-from Params import get_params
+from Params import get_params, vals
 from DataPrep import get_data, rhood_daily, yahoo_daily
 from Returns import Returns
 
@@ -33,14 +33,14 @@ class Fitter:
 		mu = (self.r - self.q - sigma**2/2)*self.dt
 		var = sigma*np.sqrt(self.dt)*np.random.normal(size=size)
 		sim = np.cumsum(mu + var, axis=0)
-		sim = row[self.stock_col] * np.exp(sim)
+		sim = row[vals['stock_col']] * np.exp(sim)
 		return(sim[-1, :])
 
 	def merton_jump(self, x, row):
 		sigma = x[0]
-		m = abs(x[1])
-		v = abs(x[2])
-		lam = abs(x[3])
+		m = x[1]
+		v = x[2]
+		lam = x[3]
 		N = round(row['T'] / self.dt)
 		size = (N, self.M)
 
@@ -50,7 +50,7 @@ class Fitter:
 		geo = np.cumsum(mu + var, axis=0)
 		poi_rv = np.multiply(np.random.poisson(lam*self.dt, size=size),
 			np.random.normal(m, v, size=size)).cumsum(axis=0)
-		sim = row[self.stock_col] * np.exp(geo + poi_rv)
+		sim = row[vals['stock_col']] * np.exp(geo + poi_rv)
 		return(sim[-1, :])
 
 	def svol(self, x, row):
@@ -62,7 +62,7 @@ class Fitter:
 		size = (N, self.M)
 		sim = np.zeros(size)
 		sim_vol = np.zeros(size)
-		S_t = row[self.stock_col]
+		S_t = row[vals['stock_col']]
 		v_t = 0.04
 
 		for t in range(N):
@@ -88,20 +88,22 @@ class Fitter:
 			return(self.svol(x, row))
 
 	def monte_price(self, x, model, data):
-		prices = []
-		grped = data.groupby([self.exp_col, 'T'], as_index=False).Underlying_Price.first()
+		grped = data.groupby([vals['exp_col'], 'T'], as_index=False)[vals['stock_col']].first()
 		grped['Paths'] = grped.apply(lambda z: self.simulate(model, x, z), axis=1)
-		data = data.merge(grped, on=[self.exp_col, 'T', self.stock_col], how='left')
-		data['SimPrice'] = np.where(data[self.type_col] == 'call', data.Paths - data.Strike, data.Strike - data.Paths)
+		data = data.merge(grped, on=[vals['exp_col'], 'T', vals['stock_col']], how='left')
+		data['SimPrice'] = np.where(data[vals['type_col']] == 'call', data.Paths - data[vals['strike_col']], data[vals['strike_col']] - data.Paths)
 		data['SimPrice'] = data['SimPrice'].apply(lambda z: np.maximum(z, 0))
 		data['SimPrice'] = data['SimPrice']*np.exp(-self.r*data['T'])
 		data['SimPrice'] = data['SimPrice'].apply(np.mean)
 		return(np.linalg.norm(data.Last - data.SimPrice, 2))
 
-	def fit(self, method, data, model, x_0, bounds):
-		res = minimize(self.monte_price, method=method, x0=x_0, args=(model, data), bounds = bounds, tol=1e-25, options={"maxiter":1000})
+	def fit(self, method, data, model, x_0, bounds, runs):
+		res_list = []
+		for run in range(runs):
+			res = minimize(self.monte_price, method=method, x0=x_0, args=(model, data), bounds = bounds, tol=1e-30, options={"maxiter":500})
+			res_list.append(res.x)
 
-		return(res)
+		return(res_list)
 
 
 

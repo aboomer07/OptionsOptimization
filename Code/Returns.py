@@ -5,6 +5,7 @@
 import numpy as np
 import datetime as dt
 import random
+from Params import get_params, vals
 
 ################################################################################
 # Make returns simulation class for different underlying models
@@ -56,7 +57,7 @@ class Returns: #Initialize
 		size = (N, self.M)
 		sim = np.zeros(size)
 		sim_vol = np.zeros(size)
-		S_t = row[self.stock_col]
+		S_t = row[vals['stock_col']]
 		v_t = self.v0
 		for t in range(N):
 			WT = np.random.multivariate_normal(np.array([0,0]), 
@@ -83,7 +84,7 @@ class Returns: #Initialize
 		elif model == 'Heston':
 			return(self.svol(row, return_vol=return_vol))
 
-		sim = row[self.stock_col] * np.exp(sim)
+		sim = row[vals['stock_col']] * np.exp(sim)
 		return(sim)
 
 	def monte_price(self, model, strikes, x):

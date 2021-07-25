@@ -2,6 +2,7 @@ import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import Counter
+from Params import get_params, vals
 
 class Option:
     def __init__(self, type_, K, price, side, Expiry):
@@ -32,13 +33,14 @@ class OptionStrat:
 		res = res.loc[res.index.repeat(abs(res.Results))]
 
 		self.Legs = list(res.apply(lambda x: ['s', 'l'][x.Results > 0] + x.Type[0], axis=1).values)
-		self.Price = res[self.stock_col].min()
-		self.Expiry = res.Expiry.min()
+		self.Price = res[vals['stock_col']].min()
+		self.Expiry = res[vals['exp_col']].min()
 		self.T = res['T'].min()
+		self.Ticker = res.Ticker.head(1).values[0]
 
 		self.x_rng = np.linspace(0, self.Price * 2, 200)
 
-		self.K = list(res.Strike.values)
+		self.K = list(res[vals['strike_col']].values)
 		self.P = list(res.Last.values)
 
 		self.instruments = []
@@ -57,9 +59,9 @@ class OptionStrat:
 			self.y_rng += np.array([self.Funcs[i](self.P[i], self.K[i], x) for x in self.x_rng])
 
 	def get_combo(self):
-		combo_dict = {'Legs' : self.Legs, self.stock_col : self.Price, 
-		self.exp_col : self.Expiry, 'Contracts' : self.instruments, 
-		'Strikes' : self.K, 'Last' : self.P, 'T' : self.T}
+		combo_dict = {'Legs' : self.Legs, vals['stock_col'] : self.Price, 
+		vals['exp_col'] : self.Expiry, 'Contracts' : self.instruments, 
+		'Strikes' : self.K, 'Last' : self.P, 'T' : self.T, 'Ticker' : self.Ticker}
 		return(combo_dict)
 
 	def plot_profit(self, plot_params, plot=False):
@@ -85,10 +87,10 @@ class OptionStrat:
 		if plot_params['file'] is not None:
 			plt.savefig(plot_params['file'])
 
-		plt.close()
-
 		if plot:
 			plt.show()
+
+		plt.close()
 
 	def describe(self):
 		max_profit  = self.y_rng.max()
@@ -109,6 +111,6 @@ class OptionStrat:
 				c -= o.price
 
 		string += f"Cost of entering position \\${round(c, 2)}"
-		print(string)
+		# print(string)
 		return(string)
 
