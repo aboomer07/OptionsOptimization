@@ -12,6 +12,7 @@ from scipy.stats import norm
 from Params import get_params, vals
 from DataPrep import get_data, rhood_daily, yahoo_daily
 from Returns import Returns
+from noisyopt import minimizeCompass
 
 ################################################################################
 # Define class to fit parameters to real data
@@ -40,7 +41,7 @@ class Fitter:
 		sigma = x[0]
 		m = x[1]
 		v = x[2]
-		lam = x[3]
+		lam = abs(x[3])
 		N = round(row['T'] / self.dt)
 		size = (N, self.M)
 
@@ -100,7 +101,10 @@ class Fitter:
 	def fit(self, method, data, model, x_0, bounds, runs):
 		res_list = []
 		for run in range(runs):
-			res = minimize(self.monte_price, method=method, x0=x_0, args=(model, data), bounds = bounds, tol=1e-30, options={"maxiter":500})
+			res = minimizeCompass(self.monte_price, x0=x_0, args=(model, data),
+				bounds=bounds, deltatol=0.01, paired=False, disp=True,
+				errorcontrol=False)
+			# res = minimize(self.monte_price, method=method, x0=x_0, args=(model, data), bounds = bounds, tol=1e-20, options={"maxiter":500, 'disp':True})
 			res_list.append(res.x)
 
 		return(res_list)

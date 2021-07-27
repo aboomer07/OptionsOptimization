@@ -47,7 +47,7 @@ def get_data(params):
 
 	if vals['source'] == 'yahoo':
 		df = df[~df['Vol'].isna()]
-		df = df[df['Vol'] != 0]
+		df = df[df['Vol'] > 1]
 		df = df.drop(['Last_Trade_Date', 'IV', 'Open_Int'], axis=1)
 		df = df[~df.duplicated()]
 
@@ -76,6 +76,7 @@ def fit_optim_test(data, fit_size, min_dt):
 	test_data['Unique'] = test_data[[vals['strike_col'], vals['type_col']]].apply(lambda x: str(x[vals['strike_col']]) + "_" + x[vals['type_col']], axis=1)
 
 	optim_data = optim_data[optim_data['Unique'].isin(test_data['Unique'].unique())]
+	test_data = test_data[test_data['Unique'].isin(optim_data['Unique'].unique())]
 
 	optim_data = optim_data.drop('Unique', axis=1)
 	test_data = test_data.drop('Unique', axis=1)

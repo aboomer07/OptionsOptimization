@@ -7,7 +7,6 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import seaborn as sns
-import numpy as np
 import pandas as pd
 import cvxpy as cp
 from cvxpy.settings import CPLEX
@@ -21,10 +20,13 @@ from Optimizer import Optimize
 from Option_Visual import Option, OptionStrat
 from Evaluation import Opt_Eval
 import xpress
-import gurobipy
+import gurobipy as gp
 from EmpFit import Fitter
 from tabulate import tabulate
 import random
+from collections import defaultdict
+from itertools import product, chain
+from noisyopt import minimizeCompass
 plt.style.use('seaborn')
 
 ################################################################################
@@ -41,17 +43,21 @@ report_path = base_path + '/OptionsOptimization/Report'
 ################################################################################
 
 data = get_data(get_params({}))
-fit_size = 10
+fit_size = 5
 min_dt = 7/365
 
 fit_data, optim_data, test_data = fit_optim_test(data, fit_size, min_dt)
+while optim_data.shape[0] != test_data.shape[0]:
+	fit_data, optim_data, test_data = fit_optim_test(data, fit_size, min_dt)
+if optim_data.shape[0] == test_data.shape[0]:
+	del data
 
 ################################################################################
 # Get Returns Simulations and Plot
 ################################################################################
 
 curr_row = data[data.index == 0].to_dict(orient='records')[0]
-sim_params = get_params({'N' : 200, 'M' : 1000})
+sim_params = get_params({'N' : 1, 'M' : 1000})
 obj = Returns(sim_params)
 
 bs_sim = obj.simulate('BlackScholes', curr_row)
@@ -97,56 +103,115 @@ plt.show()
 # Fit Parameters and Optimize
 ################################################################################
 
-models = ['BlackScholes']
-min_fit = 'SLSQP'
+min_fit = 'trust-constr'
+models = ['BlackScholes', 'Merton', 'Heston']
+leg_list = [1, 2]
+optim_sims = 4
+fit_sims = 4
+risk_sims = 200
+paths = 75
+gamma = 3
+fit_params = get_params({'M' : 5000})
+fit_obj = Fitter(fit_params)
+eval_params = get_params({'M': 500, 'dt' : min_dt})
 
-fit_res = dict(zip(models, ["" for i in models]))
-optim_params = dict(zip(models, ["" for i in models]))
+res_df = pd.DataFrame(models, columns=['Model'])
+res_df['x0'] = res_df.apply(lambda x: fit_params['x0'][x['Model']], axis=1)
+res_df['ParamNames'] = res_df.apply(lambda x: list(x['x0'].keys()), axis=1)
+res_df['bounds'] = res_df.apply(lambda x: list(fit_params['bounds'][x['Model']].values()), axis=1)
+res_df['FitResults'] = res_df.apply(lambda x: fit_obj.fit(min_fit, fit_data, x['Model'], list(x['x0'].values()), x['bounds'], fit_sims), axis=1)
+res_df['FitMeans'] = res_df.apply(lambda x: [np.mean(k) for k in zip(*x['FitResults'])], axis=1)
+res_df['FitStd'] = res_df.apply(lambda x: [np.std(k) for k in zip(*x['FitResults'])], axis=1)
 
-for model in models:
+fit_out = res_df.groupby('Model', as_index=False)[['ParamNames', 'FitMeans', 'FitStd']].first()
+for index, row in fit_out.iterrows():
+	tex_out = tabulate(list(zip(row['ParamNames'], row['FitMeans'], row['FitStd'])), headers=['Parameter', 'Mean', 'Std'], tablefmt='latex',
+		floatfmt='.2f')
 
-	fit_params = get_params({'M' : 500})
-	fit_obj = Fitter(fit_params)
-	x0 = list(fit_params['x0'][model].values())
-	bounds = list(fit_params['bounds'][model].values())
-	fit_res[model] = fit_obj.fit(min_fit, fit_data, model, x0, bounds, 5)
-	means = [np.mean(k) for k in zip(*fit_res[model])]
-
-	new = dict(zip(list(fit_params['x0'][model].keys()), means))
-
-	tex_out = tabulate(new.items(), headers=['Parameter', 'Value'], tablefmt='latex')
-
-	with open(out_path + '/Params_' + model + '.tex', 'w') as f:
+	with open(out_path + '/Params_' + row['Model'] + '.tex', 'w') as f:
 		f.write(tex_out)
 
-	new.update({'N' : 7, 'dt' : 7/365, 'M' : 50})
-	optim_params[model] = get_params(new)
+res_df['OptParams'] = res_df.apply(lambda x: get_params(dict(chain.from_iterable(d.items() for d in (x['x0'], {'N' : 365*min_dt, 'dt' : min_dt, 'M' : paths})))), axis=1)
+res_df['Optimizer'] = res_df.apply(lambda x: Optimize(x['OptParams'], optim_data), axis=1)
 
-models = ['BlackScholes']
-optim_res = dict(zip(models, ["" for i in models]))
-combos = dict(zip(models, ["" for i in models]))
-evals = dict(zip(models, ["" for i in models]))
+leg_df = pd.DataFrame(leg_list, columns=['Max_Legs'])
+leg_df['tmp'] = 1
+res_df['tmp'] = 1
+res_df = res_df.merge(leg_df, on='tmp', how='outer')
+del leg_df
 
-for model in models:
-	print("Running " + model)
-	for max_legs in [1, 2, 3, 4]:
-		print("With maximum legs in combo = " + str(max_legs))
+sim_df = pd.DataFrame(list(range(optim_sims)), columns=['SimNumber'])
+sim_df['tmp'] = 1
+res_df = res_df.merge(sim_df, on='tmp', how='outer')
+del sim_df
+res_df = res_df.drop('tmp', axis=1)
 
-		optim = Optimize(optim_params[model], optim_data)
-		optim_res[model] = optim.Run(model, optim_data, max_legs, solver='GUROBI', integer=True, gamma=2, optim='Utility')
+res_df['Results'] = res_df.apply(lambda x: x['Optimizer'].Run(x['Model'], optim_data, x['Max_Legs'], gamma=gamma), axis=1)
+res_df['OptionStrat'] = res_df.apply(lambda x: OptionStrat(x['Results'], x['OptParams']), axis=1)
+res_df['Opt_Eval'] = res_df.apply(lambda x: Opt_Eval(eval_params, x['Results']), axis=1)
+for index, row in res_df.iterrows():
+	row['Opt_Eval'].get_combo(row['OptionStrat'].get_combo())
+	row['Opt_Eval'].combo_return(test_data)
 
-		combos[model] = OptionStrat(optim_res[model], optim_params[model])
-		tex_out = combos[model].describe()
-		with open(out_path + '/OptCombo' + model + "Legs_" + str(max_legs) + '.tex', 'w') as f:
-			f.write(tex_out)
+res_df['Profit'] = res_df.apply(lambda x: x['Opt_Eval'].combo['Profit'], axis=1)
+res_df['Return'] = res_df.apply(lambda x: x['Opt_Eval'].combo['Return'], axis=1)
 
-		plot_params = {'title' : "Option Combination Optimization Plot: " + model, 'file' : out_path + '/Plot_' + model + "Legs_" + str(max_legs) + '.png'}
-		combos[model].plot_profit(plot_params)
+sharpe_out = tabulate(res_df.groupby(['Model', 'Max_Legs'], as_index=False)['Return'].apply(lambda x: round(np.mean(x - 0.03)/np.std(x), 2)).values, headers=['Model', 'Max_Legs', 'Sharpe'], tablefmt='latex')
 
-		evals[model] = Opt_Eval(get_params({'M': 10000, 'dt' : 7/365}), optim_res[model], optim_data)
-		evals[model].get_combo(combos[model].get_combo())
-		evals[model].combo_return(test_data)
-		print("Total Profit = " + str(evals[model].combo['Profit'].sum()))
-	# risk = evals[model].total_risk(model, 200)
-	# tab_risk = {key: {'Mean':round(val.mean(), 3), 'Std': round(val.std(), 3)} for key, val in risk.items()}
-	# print(tabulate(pd.DataFrame.from_dict(tab_risk).T, headers=['Risk', 'Mean', 'Std'], tablefmt='prettytable'))
+with open(out_path + '/Sharpe.tex', 'w') as f:
+		f.write(sharpe_out)
+
+res_df['Bounds'] = res_df['OptionStrat'].apply(lambda x: x.bounds())
+res_df['LeftBound'] = res_df['Bounds'].apply(lambda x: x[0])
+res_df['RightBound'] = res_df['Bounds'].apply(lambda x: x[1])
+
+res_df['LeftBound'].hist(weights = np.ones_like(res_df.index) / len(res_df.index), label='Left Bound')
+res_df['RightBound'].hist(weights = np.ones_like(res_df.index) / len(res_df.index), label='Right Bound')
+plt.legend()
+plt.show()
+
+contracts = pd.concat([pd.DataFrame(res_df['Results'][i]) for i in range(len(res_df['Results']))], axis=0, ignore_index=True)[['Strike', 'Type', 'Results']]
+sides = ['Short']*contracts.shape[0] + ['Long']*contracts.shape[0]
+contracts = pd.concat([contracts, contracts], axis=0, ignore_index=True)
+contracts['Side'] = sides
+contracts['Num'] = np.where(((contracts['Results'] == -1)&(contracts['Side'] == 'Short'))|((contracts['Results'] == 1)&(contracts['Side'] == 'Long')), 1, np.nan)
+contracts = contracts.groupby(['Strike', 'Type', 'Side'], as_index=False)['Num'].sum()
+contracts['contract'] = contracts['Side'] + "_" + contracts['Type']
+
+g = sns.FacetGrid(contracts, col="contract", col_wrap=2)
+g.map(sns.lineplot, "Strike", "Num", alpha=.7)
+g.add_legend()
+plt.show()
+
+res_df['Delta'] = res_df.apply(lambda x: x['Opt_Eval'].total_risk(x['Model'], risk_sims, 'Delta'), axis=1)
+res_df['Gamma'] = res_df.apply(lambda x: x['Opt_Eval'].total_risk(x['Model'], risk_sims, 'Gamma'), axis=1)
+res_df['Theta'] = res_df.apply(lambda x: x['Opt_Eval'].total_risk(x['Model'], risk_sims, 'Theta'), axis=1)
+
+risk = pd.concat([res_df.groupby(['Model', 'Max_Legs'])[r].apply(lambda x: np.concatenate(x)) for r in ['Delta', 'Gamma', 'Theta']], axis=1)
+risk = risk.loc[:, ~risk.columns.duplicated()]
+
+risk['Delta_Mean'] = risk['Delta'].apply(lambda x: x.mean())
+risk['Delta_Std'] = risk['Delta'].apply(lambda x: x.std())
+
+risk['Gamma_Mean'] = risk['Gamma'].apply(lambda x: x.mean())
+risk['Gamma_Std'] = risk['Gamma'].apply(lambda x: x.std())
+
+risk['Theta_Mean'] = risk['Theta'].apply(lambda x: x.mean())
+risk['Theta_Std'] = risk['Theta'].apply(lambda x: x.std())
+
+risk_out = risk[[i for i in risk.columns if ('Mean' in i)|('Std' in i)]]
+
+risk_out.columns = risk_out.columns.str.split('_', expand=True)
+risk_out = risk_out.stack(0).rename_axis(('Model', 'Max_Legs', 'Risk')).reset_index()
+
+risk_out = tabulate(risk_out.values, headers=risk_out.columns, tablefmt='prettytable', floatfmt='.2f')
+
+with open(out_path + '/TotalRisk.tex', 'w') as f:
+		f.write(risk_out)
+
+# tex_out = combos[model][leg_str].describe()
+# with open(out_path + '/OptCombo' + model + "Legs_" + str(max_legs) + '.tex', 'w') as f:
+# 	f.write(tex_out)
+
+plot_params = {'title' : "Option Combination Optimization Plot: " + model, 'file' : out_path + '/Plot_' + model + "Legs_" + str(max_legs) + '.png'}
+combos[model][leg_str].plot_profit(plot_params)

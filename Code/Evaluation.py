@@ -7,6 +7,8 @@ import pandas as pd
 import datetime as dt
 import matplotlib.pyplot as plt
 import seaborn as sns
+from Optimizer import Optimize
+from Option_Visual import Option, OptionStrat
 from Params import get_params, vals
 from Returns import Returns
 
@@ -15,17 +17,14 @@ from Returns import Returns
 ################################################################################
 
 class Opt_Eval(Returns):
-	def __init__(self, params, res, data):
-		self.S0 = params['S0'] #Initial Stock Price
-		self.T = params['T'] #Time to End of Simulation (Maturity Usually)
+	def __init__(self, params, res):
 		self.r = params['r'] #Risk Free Annual Interest Rate
 		self.q = params['q'] #Dividend
-		self.sigma = params['sigma'] #Volatility
 		self.N = params['N'] #Time Steps
 		self.M = params['M'] #Number of Simulations
 		self.dt = params['dt']
-		self.res = res.copy(deep=True)
-		self.data = data.copy(deep=True)
+		self.sigma = params['sigma']
+		self.res = pd.DataFrame.from_dict(res)
 
 		self.m = params['m'] #Mean Jump Size
 		self.v = params['v'] #Standard Deviation of Jump Size
@@ -36,7 +35,7 @@ class Opt_Eval(Returns):
 		self.theta = params['theta'] #Long run mean variance
 		self.xi = params['xi'] #volatility of volatility
 		self.v0 = params['v0']
-		
+
 	def get_combo(self, combo_dict):
 		self.combo = combo_dict.copy()
 
@@ -65,6 +64,7 @@ class Opt_Eval(Returns):
 			if self.combo['Legs'][i][0] == 's':
 				payoff = payoff * -1
 			self.combo['Profit'][i] = payoff
+		self.combo['Return'] = self.combo['Profit'].sum() / abs(self.combo['EnterCost'])
 
 	def sharpe(self):
 		returns = self.combo_return()
@@ -110,14 +110,19 @@ class Opt_Eval(Returns):
 	def get_vega(self):
 		pass
 
-	def total_risk(self, model, runs):
-		risk = {'Delta' : np.empty(runs), 'Gamma' : np.empty(runs),
-		'Theta' : np.empty(runs)}
-		for i in range(runs):
-			risk['Delta'][i] = self.get_delta(model)
-			risk['Gamma'][i] = self.get_gamma(model)
-			risk['Theta'][i] = self.get_theta(model)
-		return(risk)
+	def total_risk(self, model, runs, type_):
+		x = np.empty(runs)
+		if type_ == 'Delta':
+			for i in range(runs):
+				x[i] = self.get_delta(model)
+		elif type_ == 'Gamma':
+			for i in range(runs):
+				x[i] = self.get_gamma(model)
+		elif type_ == 'Theta':
+			for i in range(runs):
+				x[i] = self.get_theta(model)
+
+		return(x)
 
 	def WriteCall(self):
 		pass

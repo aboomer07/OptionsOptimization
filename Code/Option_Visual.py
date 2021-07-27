@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import Counter
 from Params import get_params, vals
+import pandas as pd
 
 class Option:
     def __init__(self, type_, K, price, side, Expiry):
@@ -19,6 +20,7 @@ class Option:
 
 class OptionStrat:
 	def __init__(self, res, params):
+		res = pd.DataFrame.from_dict(res)
 		self.base_funcs = {
 				'sc' : lambda P, K, X: min(K - X, 0) + P,
 				'lc' : lambda P, K, X: max(X - K, 0) - P,
@@ -58,10 +60,25 @@ class OptionStrat:
 
 			self.y_rng += np.array([self.Funcs[i](self.P[i], self.K[i], x) for x in self.x_rng])
 
+	def EnterCost(self):
+		c = 0
+		for o in self.instruments:
+			if o.type == 'Call' and o.side=='Long':
+				c += o.price
+			elif o.type == 'Call' and o.side=='Short':
+				c -= o.price
+			elif o.type =='Put' and o.side=='Long':
+				c += o.price
+			elif o.type =='Put' and o.side=='Short':
+				c -= o.price
+
+		return(c)
+
+
 	def get_combo(self):
 		combo_dict = {'Legs' : self.Legs, vals['stock_col'] : self.Price, 
 		vals['exp_col'] : self.Expiry, 'Contracts' : self.instruments, 
-		'Strikes' : self.K, 'Last' : self.P, 'T' : self.T, 'Ticker' : self.Ticker}
+		'Strikes' : self.K, 'Last' : self.P, 'T' : self.T, 'Ticker' : self.Ticker, 'EnterCost' : self.EnterCost()}
 		return(combo_dict)
 
 	def plot_profit(self, plot_params, plot=False):
@@ -97,20 +114,40 @@ class OptionStrat:
 		max_loss = -1*self.y_rng.min()
 		string = f"Max Profit: \\${round(max_profit, 2)}" + "\n\\\\"
 		string += f"Max loss: \\${round(max_loss, 2)}" + "\n\\\\"
-		c = 0
-		for o in self.instruments:
-			string += str(o) + '\n\\\\'
-			# print(o)
-			if o.type == 'Call' and o.side=='Long':
-				c += o.price
-			elif o.type == 'Call' and o.side=='Short':
-				c -= o.price
-			elif o.type =='Put' and o.side=='Long':
-				c += o.price
-			elif o.type =='Put' and o.side=='Short':
-				c -= o.price
+
+		c = self.EnterCost()
 
 		string += f"Cost of entering position \\${round(c, 2)}"
 		# print(string)
 		return(string)
+
+	def bounds(self):
+
+		right_bnd = 0
+		left_bnd = 0
+		for o in self.instruments:
+			if o.type == 'Call' and o.side=='Long':
+				right_bnd += 1
+			elif o.type == 'Call' and o.side=='Short':
+				right_bnd -= 1
+			elif o.type =='Put' and o.side=='Long':
+				left_bnd += 1
+			elif o.type =='Put' and o.side=='Short':
+				left_bnd -= 1
+
+		if left_bnd == 0:
+			left_bnd = 'Neutral'
+		else:
+			left_bnd = ['NegInf', 'PosInf'][left_bnd > 0]
+		if right_bnd == 0:
+			right_bnd = 'Neutral'
+		else:
+			right_bnd = ['NegInf', 'PosInf'][right_bnd > 0]
+
+		return((left_bnd, right_bnd))
+
+
+
+
+
 

@@ -56,7 +56,7 @@ class Optimize(Returns):
 	def get_opt_prices(self):
 		return(self.prices)
 
-	def Run(self, model, data, legs, solver='ECOS', gamma=4, integer=False, optim='Utility'):
+	def Run(self, model, data, legs, solver='GUROBI', gamma=4, integer=True, optim='Utility'):
 		As = []
 		grped = data.groupby([vals['tick_col'], vals['exp_col'], 'T'], as_index=False)[vals['stock_col']].first()
 		grped['Paths'] = grped.apply(lambda x: self.simulate(model, x)[-1, :], axis=1)
@@ -67,8 +67,21 @@ class Optimize(Returns):
 		data['As'] = (data['As'] - data.Last) / data.Last
 		As = np.array(data.As.tolist()).T
 		vec = np.array([1 + self.r]*self.M)
+
+		# model = gp.Model("OptCombo")
+		# w = model.addMVar(shape=data.shape[0], vtype=gp.GRB.INTEGER, name='weights')
+		# y = model.addMVar(shape=self.M, vtype=gp.GRB.CONTINUOUS, name='ConstrVar')
+
 		w = cp.Variable(data.shape[0], integer=integer)
 		mat_var = As@w + vec
+		# utils = y/(self.M*(1-gamma))
+		# print('here')
+		# model.addGenConstrPow(mat_var, y, gamma, 'PowerConstr')
+		# print('here')
+		# model.addConstr(np.ones(data.shape[0])@abs(w) <= legs, name='Size')
+		# model.setMobjective(utils, gp.GRB.MAXIMIZE)
+		# model.optimize()
+
 		if optim == 'Utility':
 			utils = cp.sum(cp.power(mat_var, gamma)/(1-gamma))/self.M
 		else:
@@ -83,6 +96,7 @@ class Optimize(Returns):
 		res['Results'] = w.value
 		res['Results'] = round(res['Results'])
 		res['Delta'] = As.mean(axis=0)
+		res = res.to_dict(orient='list')
 
 		return(res)
 
