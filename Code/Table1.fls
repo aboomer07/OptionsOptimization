@@ -1,0 +1,6 @@
+PWD /Users/andrewboomer/Desktop/M2_Courses/Thesis/Options/tradingbot/OptionsOptimization/Code
+INPUT /usr/local/texlive/2019/texmf.cnf
+INPUT /usr/local/texlive/2019/texmf-dist/web2c/texmf.cnf
+INPUT /usr/local/texlive/2019/texmf-var/web2c/pdftex/pdflatex.fmt
+INPUT Table1.tex
+OUTPUT Table1.log

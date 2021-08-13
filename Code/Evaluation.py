@@ -122,7 +122,7 @@ class Opt_Eval(Returns):
 			for i in range(runs):
 				x[i] = self.get_theta(model)
 
-		return(x)
+		return(list(x))
 
 	def WriteCall(self):
 		pass

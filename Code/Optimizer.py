@@ -6,9 +6,7 @@ import numpy as np
 import pandas as pd
 import datetime as dt
 import cvxpy as cp
-from mip import maximize, xsum, BINARY, Model, INTEGER
 import gurobipy as gp
-from gurobipy import GRB
 from scipy.optimize import minimize_scalar, minimize
 from scipy.stats import norm
 from Returns import Returns
@@ -57,6 +55,7 @@ class Optimize(Returns):
 		return(self.prices)
 
 	def Run(self, model, data, legs, solver='GUROBI', gamma=4, integer=True, optim='Utility'):
+		print("Runnning Model" + model + " with " + str(legs) + " Legs")
 		As = []
 		grped = data.groupby([vals['tick_col'], vals['exp_col'], 'T'], as_index=False)[vals['stock_col']].first()
 		grped['Paths'] = grped.apply(lambda x: self.simulate(model, x)[-1, :], axis=1)

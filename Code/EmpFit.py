@@ -13,6 +13,7 @@ from Params import get_params, vals
 from DataPrep import get_data, rhood_daily, yahoo_daily
 from Returns import Returns
 from noisyopt import minimizeCompass
+from arch import arch_model
 
 ################################################################################
 # Define class to fit parameters to real data

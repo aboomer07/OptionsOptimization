@@ -146,6 +146,14 @@ class OptionStrat:
 
 		return((left_bnd, right_bnd))
 
+	def get_legs(self):
+		string = ""
+		for o in self.instruments:
+			string += str(o)
+			string += "\\\\"
+
+		return(string)
+
 
 
 

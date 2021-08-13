@@ -3,16 +3,19 @@ import os
 # from yahoo_fin import options
 # from yahoo_fin import stock_info as si
 import robin_stocks as rhood
+from robin_stocks import authentication as auth
+from robin_stocks import options
 import pandas_datareader.data as web
 import datetime
 import time
 
-data_path = os.path.abspath("..") + "/Data"
+data_path = "/Users/andrewboomer/Desktop/M2_Courses/Thesis/Options/tradingbot/Data"
 
 top = ['SPY', 'PLTR', 'XLF', 'BAC', 'EEM', 'XLE', 'VALE', 'EFA', 'FCX', 'PBR', 'X', 'GGB', 'ARKK', 'AAPL', 'TSLA', 'AMZN', 'MSFT', 'GOOGL']
 
+top = ['SPY']
 ###############################################################################
-# Connecting to Robinhood
+# Connecting to Robinhood;
 ###############################################################################
 
 connect = input("Do you want to connect to robinhood account? Yes or No: ")
@@ -21,7 +24,7 @@ if connect == 'Yes':
 	pwd = input("Please Enter RobinHood password to connect")
 	uname = input('Please Enter RobinHood username to connect')
 
-	cnxn = rhood.login(username=uname, password=pwd)
+	cnxn = auth.login(username=uname, password=pwd)
 
 ###############################################################################
 # Importing Sample Option Data
@@ -57,17 +60,19 @@ for step in range(num_steps):
 
 opts = {}
 for tick in top:
-	opts[tick] = rhood.options.find_tradable_options(tick)
+	opts[tick] = options.find_tradable_options(tick)
 
-data_file = data_path + '/Rhood_Daily_Data.csv'
+# data_file = data_path + '/Rhood_Daily_Data.csv'
+data_file = data_path + '/Rhood_SPY_Data.csv'
 
 for tick in top:
 
 	print("Running Symbol " + tick)
 
-	curr_opts = opts[tick]
+	# curr_opts = opts[tick]
+	curr_opts = opts[~opts['Unique'].isin(test['Unique'])]
 
-	for entry in curr_opts:
+	for index, entry in curr_opts.iterrows():
 
 		try:
 			if [tick, entry['expiration_date'], float(entry['strike_price'])] in left_list:
@@ -75,8 +80,8 @@ for tick in top:
 		except:
 			pass
 
-		calls = rhood.options.get_option_historicals(tick, entry['expiration_date'], entry['strike_price'], 'call', interval='day', span='week')
-		puts = rhood.options.get_option_historicals(tick, entry['expiration_date'], entry['strike_price'], 'put', interval='day', span='week')
+		calls = options.get_option_historicals(tick, entry['expiration_date'], entry['strike_price'], 'call', interval='day', span='5year')
+		puts = options.get_option_historicals(tick, entry['expiration_date'], entry['strike_price'], 'put', interval='day', span='5year')
 
 		calls = pd.DataFrame.from_dict(calls)
 		puts = pd.DataFrame.from_dict(puts)

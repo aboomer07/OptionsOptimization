@@ -6,6 +6,7 @@ import numpy as np
 import datetime as dt
 import random
 from Params import get_params, vals
+from arch import arch_model
 
 ################################################################################
 # Make returns simulation class for different underlying models
@@ -32,6 +33,10 @@ class Returns: #Initialize
 		self.theta = params['theta'] #Long run mean variance
 		self.xi = params['xi'] #volatility of volatility
 		self.v0 = params['v0']
+
+		self.omega = params['omega']
+		self.alpha = params['alpha']
+		self.beta = params['beta']
 
 	def gbm(self, row):
 		N = round(row['T'] / self.dt)
@@ -76,6 +81,26 @@ class Returns: #Initialize
 
 		return(sim)
 
+	def garch(self, row, return_vol=False):
+
+		N = round(row['T'] / self.dt)
+		size = (self.N, self.M)
+
+		w = np.random.normal(size=size)
+		sigsq = np.zeros_like(w)
+		eps = np.zeros_like(w)
+		log_ret = np.zeros_like(w)
+
+		for t in range(1, self.N):
+			sigsq[t] = self.omega + self.alpha*(eps[t-1]**2) + self.beta*sigsq[t-1]
+			eps[t] = w[t] * np.sqrt(sigsq[t])
+			log_ret[t] = eps[t]
+
+		# log_ret = log_ret.cumsum(axis=0)
+
+		return(log_ret)
+
+
 	def simulate(self, model, row, return_vol=False):
 		if model == 'BlackScholes':
 			sim = self.gbm(row)
@@ -83,6 +108,8 @@ class Returns: #Initialize
 			sim = self.merton_jump(row)
 		elif model == 'Heston':
 			return(self.svol(row, return_vol=return_vol))
+		elif model == 'GARCH':
+			return(self.garch(row, return_vol=return_vol))
 
 		sim = row[vals['stock_col']] * np.exp(sim)
 		return(sim)
