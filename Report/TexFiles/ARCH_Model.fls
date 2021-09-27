@@ -1,0 +1,8 @@
+PWD /Users/andrewboomer/Desktop/M2_Courses/Thesis/Options/tradingbot/OptionsOptimization/Report/TexFiles
+INPUT /usr/local/texlive/2019/texmf.cnf
+INPUT /usr/local/texlive/2019/texmf-dist/web2c/texmf.cnf
+INPUT /usr/local/texlive/2019/texmf-var/web2c/pdftex/pdflatex.fmt
+INPUT ARCH_Model.tex
+OUTPUT ARCH_Model.log
+INPUT /usr/local/texlive/2019/texmf-dist/fonts/map/fontname/texfonts.map
+INPUT /usr/local/texlive/2019/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm

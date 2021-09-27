@@ -1,0 +1,521 @@
+%-------------------------------------------------------------------------------
+%   PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%-------------------------------------------------------------------------------
+
+\input{ai4health_header}
+\usepackage[justification=centering, skip=0pt]{caption}
+\begin{document}
+\begin{titlepage}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.25mm}} % Defines a new command for the horizontal lines, change thickness here
+\setlength{\topmargin}{-0.5in}
+\setlength{\textfloatsep}{0pt}
+% \setlength{\abovedisplayskip}{0pt}
+% \setlength{\belowdisplayskip}{0pt}
+% \setlength{\abovedisplayshortskip}{0pt}
+% \setlength{\belowdisplayshortskip}{0pt}
+\center % Center everything on the page
+
+\includegraphics[scale=0.75]{TSE.png}\\
+
+%-------------------------------------------------------------------------------
+%   HEADING SECTIONS
+%-------------------------------------------------------------------------------
+% \\[1.5cm]
+\large \textsc{M2 Thesis} 
+\vspace{1.5cm}
+% Name of your heading such as course name
+\textsc{\large } % Minor heading such as course title
+
+%-------------------------------------------------------------------------------
+%   TITLE SECTION
+%-------------------------------------------------------------------------------
+
+\HRule \\[0.75cm]
+{ \huge \bfseries Portfolio Optimization with Options}\\[0.5cm] % Title of your document
+\HRule \\[1.75cm]
+ 
+%-------------------------------------------------------------------------------
+%   AUTHOR SECTION
+%-------------------------------------------------------------------------------
+
+\large\textsc{Andrew Boomer} \\[1.5cm]
+
+%-------------------------------------------------------------------------------
+%   DATE SECTION
+%-------------------------------------------------------------------------------
+
+{\large \today}\\[0.5cm] % Date, change the \today to a set date if you want to be precise
+
+\vfill % Fill the rest of the page with whitespace
+
+\end{titlepage}
+
+% -------------------------------------------------------------
+% TABLE OF CONTENTS
+\renewcommand{\contentsname}{Table of Contents}
+\tableofcontents
+% -----------------------------------------------------------------------------
+
+\clearpage
+
+\section{Abstract}\label{sec:Abstract}
+
+In this paper, I extend the portfolio optimization with options approach layed out in \cite{faias2017optimal}. I do this by replacing their use of an ad-hoc procedure to estimate realized volatility by introducing a rolling GARCH(1, 1) model to estimate the volatility of log returns. Additionally, this optimization is done on a more recent set of options data, which includes the COVID pandemic. Contrary to \cite{faias2017optimal}, I find a lower sharpe ratio from the options optimization compared to the S\&P500 in the updated time period. In line with their work, however, I find that out-of-the money (OTM) calls have an average long position, while at-the-money (ATM) calls, ATM puts, and OTM puts have an average short position.
+
+\clearpage
+
+\section{Introduction}\label{sec:Introduction}
+
+\subsection{Overview}
+
+Portfolio optimization, or portfolio selection, contains theories and techniques from a broad range of subjects. It is an important area of research for both academics and investors, and can provide a mathematical grounding for trading decisions while reducing risk exposure. A portfolio optimization model can also be the foundation for an automated trading software program, which \cite{malmgren2011computerized} notes accounted for an average of 60\%, and sometimes up to 80\%, of equity trading volume on the flash crash of May 6, 2010. Developing an automated options trading program that can be deployed for actual retail trading is, in fact, the initial motivation of this paper. Portfolio selection is the theoretical economic foundation upon which an automated trading program is built, so this paper represents the first step in the trading programs development. Further considerations and extensions to transition this model to application in real world trading are discussed throughout the paper.
+
+Portfolio selection was popularized with the seminal paper by \cite{markowitz}. That paper applied a mean-variance framework to optimize the set of weights of a portfolio of stocks. Since then, there have been many extensions to this portfolio selection approach. This paper extends the optimization on a basket of stocks to a basket of options. For an overview on the basics of options, see Appendix \ref{app:Options}. While portfolio selection with options has traditionally been less common in the literature, there are good reasons to include them \cite{zhao2018markowitz}. While under the scrict Black-Scholes assumption of no riskless arbitrage, returns from any option portfolio can be replicated with a portfolio of stocks, in the real world, options can achieve excess returns. Additionally, options allow the investor to make directional bets on stock price movements, limiting certain risk exposure. While portfolio selection with options is not as common, \cite{zhao2018markowitz} utilize the mean-variance framework as in \cite{markowitz}, and include options in the optimization problem. They use the Black-Scholes assumption of stock returns following a geometric brownian motion to optimize the set of stock and option weights. 
+
+This paper, however, most closely follows the work in \cite{faias2017optimal}, who introduce an expected utility function in place of the mean-variance optimization. They argue, for three main reasons, that the mean-variance framework is not well suited to options. First, option returns aren't effectively described by their first and second moments. Second, large amounts of historical options data is difficult to acquire, so distributional estimation is imprecise. Third, the bid-ask spread introduces transactions costs which are hard to account for in the mean-variance framework.
+
+The last consideration of the portfolio selection problem, specifically in the context including option contracts, is whether the options are held until expiration or the portfolio is dynamically rebalanced. \cite{zhao2018markowitz} directly extend the dynmically rebalanced stock portfolio of \cite{markowitz} by using the Black-Scholes option pricing model to analytically formulate the change in the value of a portfolio containing a basket of stocks and option contracts.
+% For portfolio selection with only stocks, , and is additionally used to derive the well known Black-Scholes option pricing model \cite{black1973pricing}.
+
+Following \cite{faias2017optimal}, I conduct the portfolio selection problem with options assuming the options are held until expiration. Therefore, another extension for future work would be to reformulate my approach with dynamic rebalancing. This formulation does present some additional challenges if a closed form option pricing is not used to derive an analytical expression for the change in portfolio value. In the case of the GARCH model used in this paper, for example, the future value of the portfolio of options would need to be simulated and appropriately discounted. The dynamically rebalanced portfolio does have some advantages over the static hold until expiration strategy, however, as noted by \cite{markowitz}. Holding until expiration relies on long term return estimation, one month in the case of this paper, which can be unreliable. Additionally, dynamic rebalancing could occur on any time scale, independent of the expiration date, such as daily or hourly, enabling more trading opportunities. Finally, holding until expiration doesn't allow the investor to exit their position if the risk exceeds their tolerance or the market moves in an unfavorable direction.
+
+% \subsection{Optimization}\label{sec:Review}
+
+An overview of the optimization assumptions applied in this context provides some foundation for the portfolio selection approach in this paper, as well as context for future research and extensions. \cite{hannah2015stochastic} provides an excellent summary of the data settings for an optimization problem. Additionally, the other important consideration in structuring an optimization model is whether it is possible to formulate as convex.
+
+For some objective function to be minimized, $\mathcal{F}(x, \xi)$, where $\xi \in \Xi$ is a random variable and $x \in X$ is the choice variable, I will assume that (1) $\xi$ is exogenous of $x$ such that $\hat{x}$ does not affect the distribution of $\xi$; (2) The data generation is constructive such that given $\xi$, $\mathcal{F}(x, \xi)$ can be calculated for all $x \in X$; (3) The data is observational such that data are generated $\textit{a priori}$ and new data cannot be generated. While these assumptions are standard in the portfolio selection literature, they may not always hold. For example, investment firms trading sufficiently large volumes are able to influence the future price of an asset. As described in \cite{gsell2008assessing}, institutional investors use algorithms to slice large orders into smaller ones to avoid adverse price movements through exhausting the current liquidity in the market. This may even be a larger issues for options than for stocks, since the liquidity of an option contract can vary significantly depending on its moneyness. In this paper, only S\&P500, a highly liquid asset, is considered, and potentially illiquid far out of the money contracts are also not considered. However, generalizing the model to include other assets or further out of the money options could lead to low liquidity environments. In this case, assumption (1) may not hold.
+
+% Stochastic optimization differs from deterministic optimization in that the optimization problem involves a random objective function or constraint. A random objective function can be represented as $\mathcal{F}(x, \xi)$, where $\xi$ is random information known after the optimization has occured. Since $\mathcal{F}(x, \xi)$ cannot be known at the time of optimization, the problem must first be made deterministic in order to optimize.
+
+Additionally, portfolio selection is not necessarily a convex optimization problem, it must be specifically formulated to be convex. \cite{markowitz}, \cite{zhao2018markowitz}, and \cite{faias2017optimal} assign real number weights to the set of options (stocks) as the decision variables in the optimization. This makes the feasible set of the optimization convex, and the problem by extension. Convex optimization is more tractable and less computationally expensive than non-convex, so the convex formulation is widely used in the literature. In a real trading setting, however, option contracts can only be traded in integer quantities, so adding an integer constraint to the set of weights can be an area for extension and further research. This constraint would result in the output of the portfolio optimization model returning actual option combinations used by retail traders and firms, such as straddles, spreads, and condors \cite{chaput2003option}.
+
+In Section \ref{sec:Model} I provide an overview of the portfolio selection method, as well as the GARCH model used to simulate the volatility of the log returns. In Section \ref{sec:Data}, I describe the data sources, give summary statistics, and present basic performance metrics of the historical data. In Section \ref{sec:Estimation}, I present the estimation of the GARCH model. In Section \ref{sec:Results}, I give the results of the portfolio optimization method. In Section \ref{sec:Conclusion}, I conclude, review the model and findinds, and discuss further research.
+
+\section{Model}\label{sec:Model}
+
+\subsection{Portfolio Optimization Method}
+
+I now introduce the 6-step portfolio selection method, modeled after \cite{faias2017optimal}. In this method, I use a risk free asset, modeled by the 1-month treasury bill, and a risky asset underlying the call and put options, modeled by the S\&P500. The portfolio selection problem optimizes a set of weights among the risk free asset and call/put options. Formally, denoting $A_{t}$ as the wealth at time $t$, we solve:
+\noindent
+\[\max_{\mathbf{W}_{t}} E[U(A_{t+1})|F_{t}]\]
+\noindent
+Where $F_{t}$ as the available information at time $t$, $E$ is the expectation operator, and $U$ is the utility function specified later. $\mathbf{W}_{t}$ is the vector of weights allocated to each asset.
+
+Additionally, I define $S_{t}$ as the price of the underlying risky asset at time $t$, $rf_{t}$ as the risk free rate at time $t$, $C_{t, k} \ (P_{t, k})$ as the price of the call (put) option with strike price $k$ at time $t$ which expires at time $t + 1$. Lastly, the continuously compounded returns of $S_{t}$ are defined as $y_{t} = log(S_{t}) - log(S_{t - 1})$
+
+Suppose that at time t, there are $C$ number of call option contracts with strike prices $K_{t, c_{1}}, K_{t, c_{2}}, \dotsb, K_{t, c_{C}}$, and $P$ number of put option contracts with strike prices $K_{t, p_{1}}, K_{t, p_{2}}, \dotsb, K_{t, p_{P}}$. Then the wealth at time $t + 1$ is given by:
+\noindent
+\[A_{t+1} = A_{t}((1 - \sum_{i = 1}^{C} \omega_{t, c_{i}} - \sum_{i = 1}^{P} \omega_{t, p_{i}}) rf_{t} + \sum_{i = 1}^{C} \omega_{t, c_{i}} r_{t + 1, c} (K_{t, c_{i}}) + \sum_{i = 1}^{P} \omega_{t, p_{i}} r_{t + 1, p}(K_{t, p_{i}}))\]
+\noindent
+where $r_{t + 1, c}(k) \ (r_{t + 1, p}(k))$ denotes the return of the call (put) option with strike price $k$. Formally:
+\noindent
+\begin{align}
+\nonumber r_{t+1, c}(k) & = \frac{\max \{S_{t + 1} - k, 0\}}{C_{t, k}} - 1
+\\ \nonumber r_{t+1, p}(k) &= \frac{\max \{k - S_{t + 1}, 0\}}{P_{t, k}} - 1
+\end{align}
+\noindent
+Finally, the portfolio returns, $rp_{t + 1}$ (i.e. $rp_{t + 1} = \frac{A_{t + 1}}{A_{t}} - 1$) are defined as:
+\noindent
+\[r p_{t+1} = (1 - \sum_{i = 1}^{C} \omega_{t, c_{i}} - \sum_{i = 1}^{P} \omega_{t, p_{i}}) rf_{t} + \sum_{i = 1}^{C} \omega_{t, c_{i}} r_{t+1, c}(K_{t, c_{i}})+ \sum_{i=1}^{P} \omega_{t, p_{i}} r_{t+1, p}(K_{t, p_{i}})\]
+
+Transaction costs are modeled through the bid-ask, and are incorporated through duplicating the basket of option contracts into long and short side options. Long options enter at the end of day ask price, and short options enter at the end of day bid price. Incorporating the bid-ask spread in this way converts this model to a constrainted optimization, with a no short-selling constraint such that $\mathbf{W}_{t} > 0$. Short side option returns enter the optimization model multiplied by $-1$. This is an important consideration, and \cite{faias2017optimal} cite literature saying transaction costs are partly responsible for pricing anomolies seen in the options market.
+
+In the framework of this model, since $S_{t}$ is a random variable conditional on $F_{t}$, then $rp_{t + 1}$ is also conditionally random. Additionally, I rely on a simulation by replicating $\{rp_{t+1 \mid t}^{n}\}_{n=1}^{N}$ conditional on $F_{t}$, and transform it into $\{A_{t+1 \mid t}^{n}\}_{n=1}^{N}$. I then solve the following maximization problem on the simulated next period wealth:
+\noindent
+\[\max_{\mathbf{W}_{t}} \frac{1}{N} \sum_{n=1}^{N} U(A_{t+1 \mid t}^{n})\]
+\noindent
+which is described in detailed steps in Subsection \ref{sec:OptSteps}. First, the GARCH volatility model is introduced.
+
+\subsection{Returns}\label{sec:GARCH}
+
+In this paper I assume that the log asset returns ($y_{t}$) follow a normal distribution with a time varying volatility term. I depart from \cite{faias2017optimal}, however, by considering a full GARCH specification, whereas \cite{faias2017optimal} use an ad-hoc approach with relies on estimation of recent realized volatility. Therefore, the full model specification for the log returns of the underlying asset is given by the GARCH (1, 1) with zero conditional mean:
+\noindent
+\begin{align}
+\nonumber y_{t} &= \sigma_{t} \epsilon_{t} \quad \epsilon_{t} \sim iid.N(0, 1)
+\\ \nonumber \sigma_{t}^{2} &= \omega + \alpha y_{t - 1}^{2} + \beta \sigma_{t - 1}^{2}
+\\ \nonumber & \omega > 0 \ \ \alpha, \beta \geq 0
+\end{align}
+
+As explained in further detail in Section \ref{sec:Data}, monthly price data for the S\&P 500 is obtained from the Case-Shiller index. This is used to estimate the GARCH(1, 1) model via maximum likelihood. This estimation is done via a rolling estimation scheme where the GARCH parameters are re-estimated at each time period given the newly available data. The option data is available between January 2019 and May 2021, so volatility forecasts are computed for this time period from the rolling GARCH model. Additionally, the volatility forecast at time $t + h$ uses the information of the actual $y_{t}$ at time $t + h - 1$.
+
+For each time period $t + h$ beginning in January 2019, the variance forecast is:
+\noindent
+\[\hat{\sigma}_{t + h}^{2} = \hat{\omega} + \hat{\alpha} y_{t + h - 1}^{2} + \hat{\beta} \hat{\sigma}_{t + h - 1}^{2}\]
+\noindent
+The volatility is then $\hat{\sigma}_{t + h} = \sqrt{\hat{\sigma}_{t + h}^{2}}$
+
+\subsection{Portfolio Optimization Steps}\label{sec:OptSteps}
+$\bullet$ \underline{\textbf{Step 1: Simulate log returns of the underlying asset}}
+
+To simulate future log returns, the $\epsilon_{t}$ are simulated ($\tilde{\epsilon}_{t}$) using a bootstrapping method from historical $\hat{\epsilon}_{t}$, where $\hat{\epsilon}_{t} = \frac{y_{t}}{\hat{\sigma}_{t}}$. This follows the filtered historical simulation method in \cite{barone2008garch}. At each time t, N samples are chosen with replacement from the historical $\hat{\epsilon}_{t}$ series, time t inclusive. For a timespan of T months, this gives a bootsrapped matrix of $\tilde{\epsilon}_{t}$ of size $T \times N$. The volatility forecast time series is then multiplied by each of the N simulation for each of the time periods such that $\tilde{y}_{t + h}^{n} = \hat{\sigma}_{t + h} \tilde{\epsilon}_{t + h}^{n} \quad \forall n \in 1, \dotsb, N$.
+
+$\bullet$ \underline{\textbf{Step 2: Simulate next period prices of the underlying asset}}
+
+For each period $t + h$, and for each simulation $n \in N$, the simulated price is:
+\noindent
+\[S_{t + h|t+h-1}^{n} = S_{t + h - 1} e^{y_{t + h}^{n}}\]
+\noindent
+This yields a matrix of simulated asset prices with the same shape as the $\tilde{y}_{t}$ matrix.
+
+$\bullet$ \underline{\textbf{Step 3: Simulate option returns}}
+
+The option returns are calculated assuming the contract is held until expiration. This means that the simulated payoff of a call and a put, $\forall \ n \in N$, respectively are:
+\noindent
+\begin{align} 
+\nonumber C_{t+1 \mid t}^{n}(k) &= \max (S_{t+1 \mid t}^{n} - k, 0) \quad \quad k = K_{t, c_{1}}, \cdots, K_{t, c_{C}} 
+\\ \nonumber P_{t+1 \mid t}^{n}(k) &= \max (k - S_{t+1 \mid t}^{n}, 0) \quad \quad k = K_{t, p_{1}}, \cdots, K_{t, p_{P}}
+\\ \nonumber r_{t+1 \mid t, c}^{n}(k) &= \frac{C_{t+1 \mid t}^{n}(k)}{C_{t, k}} - 1 \quad \quad k = K_{t, c_{1}}, \cdots, K_{t, c_{C}}
+\\ \nonumber r_{t+1 \mid t, p}^{n}(k) &= \frac{P_{t+1 \mid t}^{n}(k)}{P_{t, k}} - 1 \quad \quad k = K_{t, p_{1}}, \cdots, K_{t, p_{P}}
+\end{align}
+\noindent
+$\bullet$ \underline{\textbf{Step 4: Simulate Portfolio Returns}}
+
+Let $rp_{t+1 \mid t}^{n}$ denote the portfolio returns for a simulation $n$:
+\noindent
+\[rp_{t+1 \mid t}^{n} = rf_{t} + \sum_{i = 1}^{C} \omega_{t, c_{i}}(r_{t+1 \mid t, c}^{n}(K_{t, c_{i}}) - rf_{t}) + \sum_{j = 1}^{P} \omega_{t, p_{j}}(r_{t+1 \mid t, p}^{n}(K_{t, p_{j}}) - rf_{t})\]
+\noindent
+This can be vectorized be concatenating the call/put returns and weights.
+\noindent
+\[rp_{t+1 \mid t}^{n}(\mathbf{W}_{t})= rf_{t} + \langle\mathbf{W}_{t}, \mathbf{R}_{t+1 \mid t}^{n}\rangle\]
+\noindent
+\[\mathbf{W}_{t} = \begin{bmatrix} \omega_{t, c_{1}}, \dotsb, \omega_{t, c_{C}}, \omega_{t, p_{1}}, \dotsb, \omega_{t, p_{P}} \end{bmatrix}\]
+\[\mathbf{R}_{t+1|t}^{n} = \begin{bmatrix} r_{t + 1|t, c_{1}}^{n}, \dotsb, r_{t + 1|t, c_{C}}^{n}, r_{t + 1|t, p_{1}}^{n}, \dotsb, r_{t + 1|t, p_{P}}^{n} \end{bmatrix} - \begin{bmatrix} rf_{t}, \dotsb, rf_{t} \end{bmatrix}\]
+\noindent
+$\bullet$ \underline{\textbf{Step 5: Present utility function}}
+
+I use a power utility function which has the property of constant relative risk aversion (CRRA). \cite{faias2017optimal} cite that previous literature estimated $\gamma$ as 4 for the S\&P500 index option data, but I follow their use of $\gamma = 10$. Using a higher gamma parameter that was estimated has a similar effect as shrinking the portfolio weights, which is employed in practice as extreme portfolio weights would lead to increased risk exposure.
+\noindent
+\[U(A)=\left\{\begin{array}{ll}\frac{1}{1-\gamma} A^{1-\gamma}, & \text { if } \gamma \neq 1 \\ \ln (A), & \text { if } \gamma=1\end{array}\right.\]
+\noindent
+In terms of the vectorized implementation, across all $N$ simulations, I maximize the mean utility of next periods' simulated wealth:
+\noindent
+\[\max_{\mathbf{W}_{t}} \sum_{n = 1}^{N} U(A_{t+1 \mid t}^{n}) = \max_{\mathbf{W}_{t}} \sum_{n = 1}^{N} U(A_{t}(1 + rp_{t + 1 \mid t}^{n}(\mathbf{W}_{t})))\]
+\noindent
+Since $A_{t}$ is known at time $t$ and is independent of the decision variable $\mathbf{W}_{t}$, this optimization problem is equivalent to optimizing the simulated portfolio returns:
+\noindent
+\[\max_{\mathbf{W}_{t}} \sum_{n = 1}^{N} U(1 + rp_{t+1 \mid t}^{n}(\mathbf{W}_{t}))\]
+\noindent
+$\bullet$ \underline{\textbf{Step 6: Calculate Ex-Post returns}}
+
+The vector of portfolio weights that solves the maximization problem in Step 5 can be written as:
+\noindent
+\[\mathbf{W}_{t}^{*} = arg \max_{\mathbf{W}_{t}} \sum_{n = 1}^{N} U(1 + rp_{t+1 \mid t}^{n}(\mathbf{W}_{t}))\]
+
+The realizd ex-post returns are calculated with a similar procedure as the simulated returns. The realized underlying asset price at $t+1$, $S_{t+1}$ is used in place of $S_{t+1|t}^{n}$.
+\noindent
+\begin{align} 
+\nonumber C_{t+1 \mid t}(k) &= \max (S_{t+1} - k, 0) \quad \quad k = K_{t, c_{1}}, \cdots, K_{t, c_{C}} 
+\\ \nonumber P_{t+1 \mid t}(k) &= \max (k - S_{t+1}, 0) \quad \quad k = K_{t, p_{1}}, \cdots, K_{t, p_{P}}
+\\ \nonumber r_{t+1 \mid t, c}(k) &= \frac{C_{t+1 \mid t}(k)}{C_{t, k}} - 1 \quad \quad k = K_{t, c_{1}}, \cdots, K_{t, c_{C}}
+\\ \nonumber r_{t+1 \mid t, p}(k) &= \frac{P_{t+1 \mid t}(k)}{P_{t, k}} - 1 \quad \quad k = K_{t, p_{1}}, \cdots, K_{t, p_{P}}
+\end{align}
+\noindent
+Then vectorizing as before:
+\noindent
+\begin{align}
+\nonumber rp_{t+1|t}(\mathbf{W}_{t}^{*}) &= rf_{t} + \langle\mathbf{W}_{t}^{*}, \mathbf{R}_{t+1 \mid t}\rangle
+\\ \nonumber \mathbf{R}_{t+1 \mid t} &= \begin{bmatrix} r_{t + 1 \mid t, c_{1}}, \dotsb, r_{t + 1 \mid t, c_{C}}, r_{t + 1 \mid t, p_{1}}, \dotsb, r_{t + 1 \mid t, p_{P}} \end{bmatrix} - \begin{bmatrix} rf_{t}, \dotsb, rf_{t} \end{bmatrix}
+\end{align}
+\noindent
+Next periods wealth is then:
+\noindent
+\[A_{t+1} = A_{t} (1 + rp_{t+1 \mid t}(\mathbf{W}_{t}^{*}))\]
+
+% \clearpage
+
+\section{Data}\label{sec:Data}
+
+The S\&P500 monthly data was downloaded from \href{http://www.econ.yale.edu/~shiller/data.htm}{Robert Shiller's} website, within the \textit{U.S. Stock Markets 1871-Present and CAPE Ratio} dataset. This is monthly data spanning from January 1950 to May 2021, including more recent data than \cite{faias2017optimal}. The S\&P Composite price is used to calculate the log returns ($y_{t}$), which are calculated as $y_{t} = ln(S_{t}) - ln(S_{t - 1})$, where $S_{t}$ is the monthly average of the underlying S\&P500 daily closing price.
+
+Table \ref{tab:Table1} shows these summary statistics for the log returns and standardized returns.
+\noindent \centerline{\rule{15cm}{.5pt}} \unskip
+\begin{table}[!htbp]
+\captionsetup{width=16cm, skip=5pt}
+\begin{center}
+	\caption{\\ \textbf{S\&P 500 Index Returns Summary Statistics}\\ \rule{15cm}{0.5pt}\\ \footnotesize{\textit{Standardized returns, $\hat{\epsilon}_{t} = \frac{y_{t}}{\hat{\sigma}_{t}^{GARCH}}$, are the estimated GARCH conditional volatility series. No. of Observations, Skew, and Kurtosis are presented. Lag 1 autocorrelation, $\rho_{1}(z)$, and squared autocorrelation, $\rho_{1}(z^{2})$, are additionally shown. $Q_{1}(z)$ is the Lag 1 Ljung\-Box test of autocorrelation. ARCH(1) is the Lag 1 Engle Test for Autoregressive Conditional Heteroskedasticity (ARCH).}}}
+    \scalebox{0.75}{\input{TexFiles/Table1}}
+    \label{tab:Table1}
+\end{center}
+\end{table}
+
+The option data is obtained from the Chicago Board of Exchange (CBOE), and spans from January 2019 to May 2021. Table \ref{tab:CBOE_Dict} gives a list of available variables.
+
+\begin{table}[!htpb]
+\captionsetup{width=8cm, skip=5pt}
+\begin{center}
+	\caption{\\ \textbf{CBOE Variable Descriptions} \rule{8cm}{0.5pt}\\ \footnotesize{\textit{Data Descriptions are presented for the relevant variables from the CBOE}}}
+    \scalebox{0.9}{\input{TexFiles/CBOE_Dict}}
+    \label{tab:CBOE_Dict}
+\end{center}
+\end{table}
+
+Figure \ref{fig:LogStandRet} shows histograms of the historic log returns and standardized returns for all months prior to January 15, 2019, the start of the CBOE data.
+
+\begin{figure}[!htpb]
+\captionsetup{width=13cm, skip=5pt}
+\caption{\\ \textbf{Historic Log/Standardized Returns} \rule{13cm}{0.5pt}\\ \footnotesize{\textit{Histograms of historic log returns ($y_{t}$) and standardized returns ($\epsilon_{t}$) are presented. Time period spans from 1950 through 2018.}}}
+	\begin{minipage}{0.53\linewidth}
+	    \includegraphics[width=8.5cm]{Graphs/RR_20190115.png}
+	\end{minipage}
+	\begin{minipage}{0.5\linewidth}
+	    \includegraphics[width=8.5cm]{Graphs/SR_20190115.png}
+	\end{minipage}
+\label{fig:LogStandRet}
+\end{figure}
+
+Observations that meet any of these 3 criteria are removed from the dataset: (1) Zero Volume Traded; (2) Bid Price lower than $\$0.125$, (3) Bid Price lower than Ask Price. These 3 filters correspond to the columns: 'Volume', 'bid\_eod', and 'ask\_eod' respectively. The data is then filtered for expiration dates that land on the 3rd Friday of each month. Then option quote times are filtered for 1 month to maturity, 28/29/30/31 days depending on the month and year. Figure \ref{fig:ContractCount} shows the number of call and put contracts by date from the CBOE data after filtering.
+
+\begin{figure}[!htpb]
+\captionsetup{width=12cm, skip=0pt}
+    \begin{center}
+    	\caption{\\ \textbf{Count of Option Contracts} \rule{12cm}{0.5pt}\\ \footnotesize{\textit{Count of Contracts by date and by option type after CBOE option data was filtered. Time span is from January 2019 to May 2021.}}}
+        \includegraphics[width=12cm]{Graphs/Contract_Count.png}
+        \label{fig:ContractCount}
+    \end{center}
+\end{figure}
+
+Then I further filter the option contracts used in the portfolio optimization by defining four types of contracts. I define an at-the-money (ATM) call/put and an out-of-the-money (OTM) call/put. ATM calls/puts are found by finding the contract for each date with the lowest bid-ask spread and a moneyness between $-1\% \text{ to } 1\%$. OTM calls/puts are found in the same manner, however with moneyness from $-5\% \text{ to } -2\%$ and $2\% \text{ to } 5\%$ respectively. Table \ref{tab:Table3} shows summary statistics for the realized returns of these four contracts, as well as for an even weighting between the four, the underlying S\&P500, and the risk free asset. Figure \ref{fig:Fig3_kde} shows the histograms of the actual returns of each of the four option contracts, with extreme outliers removed. All four option contracts exhibit a positive skewness, while an ATM call has the lowest skewness and kurtosis of the four contracts. The mean returns of both ATM and OTM puts are larger than ATM calls, due to their large positive tail returns. However their standard deviations lead to lower sharpe ratios than the ATM call. The OTM call has a negative mean return, implying that shorting OTM calls could be a profitable strategy. The positive mean returns of ATM and OTM puts is in contrast to the time period used in \cite{faias2017optimal}, which is likely due to the small sample size and the outsized impact of the maximum returns due to the first COVID month (Check!!).
+
+\begin{table}[!htbp]
+\captionsetup{width=12.5cm, skip=5pt}
+\begin{center}
+	\caption{\\ \textbf{Actual Returns for Options, S\&P500, and Risk Free} \rule{12.5cm}{0.5pt}\\ \footnotesize{\textit{ATM/OTM Call/Put show individual realized option returns for a hold until expiration strategy. $\frac{1}{N}$ shows return for even weighting on each of the four contracts. S\&P500, Risk Free show actual returns for underlying asset and risk free treasury bill respectively. Mean, Std, Min, Max are shown as percentages.}}}
+    \scalebox{0.75}{\input{TexFiles/Table3}}
+    \label{tab:Table3}
+\end{center}
+\end{table}
+
+\begin{figure}[!htpb]
+\captionsetup{width=13cm, skip=0pt}
+    \begin{center}
+    	\caption{\\ \textbf{Actual Returns by Option Type} \rule{13cm}{0.5pt}\\ \footnotesize{\textit{Histograms of actual returns by option type for a hold until expiration strategy are presented. Returns are percentages, time spans is from January 2019 to May 2021. Returns larger than 1000\% are removed for clarity.}}}
+        \includegraphics[width=13cm]{Graphs/Fig3_kde.png}
+        \label{fig:Fig3_kde}
+    \end{center}
+\end{figure}
+
+To model the risk free asset, the 1-month treasury bill time series is used. The daily data is downloaded from the Fred St. Louis Database (Ticker "DGS1MO"). This data is then joined to match up with the quote time of the options in the filtered CBOE data. This produces a time series of risk free returns, that as I take as given. Figure \ref{fig:Tbill_TS} shows the time series of the 1-month treasury bill returns. While Figure \ref{fig:Tbill_TS} does not go all the way back to 1996 as in \cite{faias2017optimal}, the average risk-free return from 2001 through 2013 is XXX times higher than the risk-free return in the red area, from 2019 through May 2021. As will be discussed in further detail in section \ref{sec:Results}, this discrepancy may impact a strategy that tends to choose longer positions on the risk free asset.
+
+\begin{figure}[!htpb]
+\captionsetup{width=13.2cm, skip=0pt}
+    \begin{center}
+    	\caption{\\ \textbf{Risk Free Asset Returns} \rule{13.2cm}{0.5pt}\\ \footnotesize{\textit{Time Series of 1-Month Treasury Bill Returns from St. Louis FRED. Time span is from August 2001 to August 2021. Time span of available option data is shown in red.}}}
+        \includegraphics[width=10cm]{Graphs/Tbill_TS.png}
+        \label{fig:Tbill_TS}
+    \end{center}
+\end{figure}
+
+% \clearpage
+
+\section{Estimation}\label{sec:Estimation}
+
+The rolling window GARCH(1, 1) model described in section \ref{sec:GARCH} is estimated using maximum likelihood at a monthly frequency, spanning from December, 2018 to May, 2021. At each time period $t$, the data used to estimate the GARCH model spans from January, 1950 to $t$, inclusive. The estimation results for December, 2018 are shown in Table \ref{tab:ARCH_Mod}. All three coefficients are significantly different from zero, although $\omega$ is 0 out to three decimal points. Additionally, the marginal effect of the squared lag log return ($\alpha$) is lower than the marginal effect of the squared lag conditional volatility ($\beta$).
+
+\begin{table}[!htbp]
+	\captionsetup{width=10.5cm, skip=5pt}
+	\caption{\\ \textbf{GARCH(1, 1) Log Returns Model} \rule{10.5cm}{0.5pt}\\ \footnotesize{\textit{GARCH(1, 1) model estimation summary is shown. The model is estimated on log returns from January 1950 through December 2018.}}}
+    \input{TexFiles/ARCH_Model}
+    \label{tab:ARCH_Mod}
+\end{table}
+
+Figure \ref{fig:GARCH_TS} shows a time series plot of the log returns and the conditional volatility using the rolling GARCH procedure described in Section \ref{sec:GARCH}. The spikes in conditional volatility for the great recession and the Covid pandemic are visible in Figure \ref{fig:GARCH_TS} as well.
+
+\begin{figure}[!htpb]
+\captionsetup{width=13cm, skip=0pt}
+    \begin{center}
+    	\caption{\\ \textbf{GARCH Time Series Plot} \rule{13cm}{0.5pt}\\ \footnotesize{\textit{Time series of S\&P500 log returns, and estimated conditional volatility from GARCH(1, 1) model are shown. After the forecast date, January 2019, conditional volatility values shown are forecasts. Time spans from January 1950 to May 2021.}}}
+        \includegraphics[width=10cm]{Graphs/GARCH_TS_plot.png}
+        \label{fig:GARCH_TS}
+    \end{center}
+\end{figure}
+\clearpage
+\section{Results}\label{sec:Results}
+Expanding on the work done in \cite{faias2017optimal}, multiple variations of the portfolio optimization technique laid out in section \ref{sec:Model} are presented. The first variation introduces a cutoff on the elements of the optimized portfolio weight vector $\mathbf{W}_{t}^{*}$, such that the simulated returns are set to $0$ for contracts whose optimized weights are greater than $10\%$ in absolute value, then the optimization is run again. While setting the CRRA parameter $\gamma$ to 10 does induce some portfolio weight shrinkage, this variation models a scenario where a trader might want to define a cutoff for their single contract risk exposure. The other variation uses all the other option contracts for each date other than the four ATM/OTM calls/puts. This increases the choice set for the portfolio optimization model, which can in theory lead to a more profitable outcome. There are however challenges with including many of the possible option contracts, some of which are described in \cite{faias2017optimal}. Introducing many options that are similar in moneyness can lead to redundancy in the optimization, and making trades across many options leads to more exposure to bid-ask spread transaction costs. Additionally, options that are too deep OTM can have low liquidity which exposes an options portfolio to the risk of non-assignement on a portion of the portfolio, or as described in section \ref{sec:Introduction}, the possibility of $\mathbf{W}_{t}^{*}$ being endogenous to the future options price.
+
+\subsection{Portfolio Optimization: Initial Model}\label{sec:PortOpt}
+% Table \ref{tab:Output4} shows the ex-post returns as well as the weights for each of the four option products and the risk free asset at each date in the CBOE sample. March 2020 stands out in the results for its outsized positive return, during the beginning of the COVID pandemic. The biggest difference in this month was a strong short selling of ATM Puts, which additionally resulted in buying a lot of the risk free asset.
+
+Figure \ref{fig:Fig4_OOPSRet} shows a histogram of the monthly Ex-post returns. We can see that there is a definite XXX skewness in the distribution, thus suggesting non-normality of the monthly option returns. Additionally, both the highest and lowest monthly returns are centered around the beginning of the Covid pandemic. The lowest monthly return of XXX, as shown in Table \ref{tab:Table4} and in full detail in Table \ref{tab:Output4} of Appendix \ref{app:Detail}, occurs in March 2020, and the highest monthly return of XXX occurs the next month in April 2020, the lowest return is larger in absolute value than the highest.
+
+\begin{figure}[!htpb]
+\captionsetup{width=12cm, skip=0pt}
+    \begin{center}
+   		\caption{\\ \textbf{Portfolio Optimization Returns} \rule{12cm}{0.5pt}\\ \footnotesize{\textit{Histogram of portfolio optimization returns is shown. The time period is January 2019 to May 2021.}}}
+        \includegraphics[width=12cm]{Graphs/Fig4_OOPSRet.png}
+        \label{fig:Fig4_OOPSRet}
+    \end{center}
+\end{figure}
+
+Table \ref{tab:Table4} compares the summary of the monthly returns of the option portfolio optimization with the returns of the S\&P500. The the Ex-post returns have a XXX mean and a XXX standard deviation than the S\&P500, resulting in the S\&P500 having a XXX Sharpe ratio (XXX vs. XXX) in time period of the data. Additionally, the Ex-post returns have a XXX skew and a XXX kurtosis, implying that they are XXX to a normal distribution than the S\&P500 returns.
+
+\begin{table}[!htbp]
+\captionsetup{width=13cm, skip=5pt}
+\begin{center}
+	\caption{\\ \textbf{Portfolio Optimization vs. S\&P500 Returns} \rule{13cm}{0.5pt}\\ \footnotesize{\textit{Summary statistics for the optimized portfolio and S\&P500 returns are shown. The time period is January 2019 to May 2021. Mean, std, min, and max are percentages. The Sharpe Ratio (SR) is monthly.}}}
+    \scalebox{0.9}{\input{TexFiles/Table4}}
+    \label{tab:Table4}
+\end{center}
+\end{table}
+
+Table \ref{tab:Table5} shows the summary statistics of the weights for each type of option contract in the monthly optimization. Contrary to what would be expected from the actual returns by contract in Table \ref{tab:Table3} of Section \ref{sec:Data}, the model is long OTM calls on average, while short on average for the other three contract types. Additionally, the range of the weights chosen for the OTM call position, between the minimum and maximum, is much smaller than the other three contracts. Figure \ref{fig:Weights} shows a time series representation of the weights per contract, as well as the risk-free asset weights. This is also shown in detail in Table \ref{tab:Output4} of Appendix \ref{app:Detail}. The risk-free asset weights range from XXX\% to XXX\% in March 2020, due to a large short position in the ATM call (XXX\%). On average, the portfolio optimization model is a net XXX of options, and is in a XXX position XXX\% of the months. In line with the findings in \cite{faias2017optimal}, the model overwhelmingly shorts OTM puts, XXX\% of the months, with an average short position of XXX\%. 
+
+\begin{table}[!htbp]
+\captionsetup{width=13cm, skip=5pt}
+\begin{center}
+	\caption{\\ \textbf{Portfolio Optimization Weights} \rule{13cm}{0.5pt}\\ \footnotesize{\textit{Mean, min, and max are presented for the optimized portfolio weights. The time period is January 2019 to May 2021. All values are percentages.}}}
+    \scalebox{0.9}{\input{TexFiles/Table5}}
+    \label{tab:Table5}
+\end{center}
+\end{table}
+
+\begin{figure}[!htpb]
+\captionsetup{width=11cm, skip=0pt}
+    \begin{center}
+   		\caption{\\ \textbf{Portfolio Optimization Weights by Contract} \rule{11cm}{0.5pt}\\ \footnotesize{\textit{Optimized weights from portfolio optimization are shown by option type, as well as for the call-put difference and risk-free assset. The time period is January 2019 to May 2021.}}}
+        \includegraphics[width=11cm]{Graphs/WeightsPlot.png}
+        \label{fig:Weights}
+    \end{center}
+\end{figure}
+
+Figure \ref{fig:Cum} shows the cumulative returns from January 2019 to May 2021 for the portfolio optimization model, the S\&P500, and the risk-free asset. The initial wealth and March 2020 are marked with dotted lines. Prior to Covid, the cumulative returns of all three track relatively closely, however, each respond to the Covid shock differently. The risk-free asset levels out, in accordance with Figure \ref{fig:Tbill_TS}, while the Ex-post returns and the S\&P500 both experience steep losses, with the S\&P500 experiencing a XXX loss. However, the S\&P500 bounces back more quickly, and has the highest ending cumulative return of the three.
+
+\begin{figure}[!htpb]
+\captionsetup{width=11cm, skip=0pt}
+    \begin{center}
+   		\caption{\\ \textbf{Cumulative Returns} \rule{11cm}{0.5pt}\\ \footnotesize{\textit{Cumulative returns for portfolio optimization, S\&P500, and risk-free asset are shown. The time period is January 2019 to May 2021, and starting wealth is set to \$100.}}}
+        \includegraphics[width=11cm]{Graphs/Cum_Returns.png}
+        \label{fig:Cum}
+    \end{center}
+\end{figure}
+
+\clearpage
+
+\subsection{Portfolio Optimization: Cutoff Adjusted}\label{sec:PortOpt_Cut}
+
+\begin{figure}[!htpb]
+\captionsetup{width=12cm, skip=0pt}
+    \begin{center}
+   		\caption{\\ \textbf{Portfolio Optimization Returns: Cutoff Adjusted} \rule{12cm}{0.5pt}\\ \footnotesize{\textit{Histogram of portfolio optimization returns is shown. The time period is January 2019 to May 2021. Simulated returns for contracts with weights greater than 10\% in absolute value are forced to zero, and the optimization is rerun.}}}
+        \includegraphics[width=12cm]{Graphs/Fig4_OOPSRet_Cutoff.png}
+        \label{fig:Fig4_OOPSRet_Cutoff}
+    \end{center}
+\end{figure}
+
+\begin{table}[!htbp]
+\captionsetup{width=13cm, skip=5pt}
+\begin{center}
+	\caption{\\ \textbf{Portfolio Optimization vs. S\&P500 Returns: Cutoff Adjusted} \rule{13cm}{0.5pt}\\ \footnotesize{\textit{Summary statistics for the optimized portfolio and S\&P500 returns are shown. The time period is January 2019 to May 2021. Mean, std, min, and max are percentages. The Sharpe Ratio (SR) is monthly. Simulated returns for contracts with weights greater than 10\% in absolute value are forced to zero, and the optimization is rerun.}}}
+    \scalebox{0.9}{\input{TexFiles/Table4_Cutoff}}
+    \label{tab:Table4_Cutoff}
+\end{center}
+\end{table}
+
+\begin{table}[!htbp]
+\captionsetup{width=13cm, skip=5pt}
+\begin{center}
+	\caption{\\ \textbf{Portfolio Optimization Weights: Cutoff Adjusted} \rule{13cm}{0.5pt}\\ \footnotesize{\textit{Mean, min, and max are presented for the optimized portfolio weights. The time period is January 2019 to May 2021. All values are percentages. Simulated returns for contracts with weights greater than 10\% in absolute value are forced to zero, and the optimization is rerun.}}}
+    \scalebox{0.9}{\input{TexFiles/Table5_Cutoff}}
+    \label{tab:Table5_Cutoff}
+\end{center}
+\end{table}
+
+\begin{figure}[!htpb]
+\captionsetup{width=11cm, skip=0pt}
+    \begin{center}
+   		\caption{\\ \textbf{Cumulative Returns: Cutoff Adjusted} \rule{11cm}{0.5pt}\\ \footnotesize{\textit{Cumulative returns for portfolio optimization, S\&P500, and risk-free asset are shown. The time period is January 2019 to May 2021, and starting wealth is set to \$100. Simulated returns for contracts with weights greater than 10\% in absolute value are forced to zero, and the optimization is rerun.}}}
+        \includegraphics[width=11cm]{Graphs/Cum_Returns_Cutoff.png}
+        \label{fig:Cum_Cutoff}
+    \end{center}
+\end{figure}
+
+\begin{figure}[!htpb]
+\captionsetup{width=11cm, skip=0pt}
+    \begin{center}
+   		\caption{\\ \textbf{Portfolio Optimization Weights by Contract: Cutoff Adjusted} \rule{11cm}{0.5pt}\\ \footnotesize{\textit{Optimized weights from portfolio optimization are shown by option type, as well as for the call-put difference and risk-free assset. The time period is January 2019 to May 2021. Simulated returns for contracts with weights greater than 10\% in absolute value are forced to zero, and the optimization is rerun.}}}
+        \includegraphics[width=11cm]{Graphs/WeightsPlot_Cutoff.png}
+        \label{fig:Weights_Cutoff}
+    \end{center}
+\end{figure}
+
+\clearpage
+
+\section{Conclusion}\label{sec:Conclusion}
+
+The results portfolio optimization model presented in this paper show ex-post returns which are on average higher compared to the S\&P500 itself. However, these returns show a lower sharpe ratio, higher kurtosis, and a higher skew in absolute value. Given the shorter time period of the available options data, and the anomalous time period during the COVID pandemic, replicating the optimization on the same options data as in \cite{faias2017optimal} would provide a more accurate comparison. Of particular interest, however, was the ability of the model to accurately predict the profitability of heavily shorting ATM puts during the beginning of the COVID pandemic.
+
+This paper leaves several extensions open for future research and implementation to transition the option portfolio optimization model to real world trading. Imposing an integer constraint on the weights would mean the results could be directly traded on. Implementing this model as a dynamically rebalanced portfolio, rather than held to expiration could prove to be more profitable. Incorporating further out of the money contracts would make this optimization more realistic, while however, opening up the issue of low liquidity contracts. Other models to simulate the returns of the underlying asset can also be substituted, including variations on the GARCH, as well as neural networks. 
+
+\clearpage
+
+\nocite{*}
+\bibliography{References}
+
+\clearpage
+
+\begin{appendix}
+\section{Options Overview}\label{app:Options}
+
+Options are a type of financial derivative. The two types of basic options, calls and puts, give the purchaser the right but not the obligation to buy or sell, respectively, the underlying security at a future date and specified price. With a European option, the holder of the option can exercise their position at the expiration date if they so choose.\footnote{An American option, not considered in this paper, gives the option holder the right to exercise at any time. This early exercise ability makes the American option price higher than is European counter part. Closed form option pricing models such as Black Scholes assume European options.} The seller, or writer, of the options must fulfill their end of the contract if the option is exercised. As with stocks, buying an option is known as taking a long position, and selling a short position.
+
+The buyer of an option increases their choice set, thereby mitigating risk on the downside for a call, and the upside for a put. The seller takes on the risk that the buyer will exercise their option. Therefore, a buyer should pay the seller a cost for this shifting of risk. The price payed for this exchange of risk is the option price.
+
+The price at which the option holder has the right to buy or sell the underlying security is called the strike price, commonly denoted $K$. The time in days until maturity of the option, at its expiration date, is denoted $T$. The price of the option is denoted $C$ and $P$ for calls and puts respectively, as in \cite{faias2017optimal}. The price of the underlying asset at expiration is denoted $S_{T}$. Option moneyness is defined as $\frac{S_{t}}{K} - 1$
+
+Figures \ref{fig:LC} and \ref{fig:LP} show the profit functions of a long call and a long put respectively. The profit functions of the short side of each of these is obtained by multiplying by $-1$.
+
+\begin{figure}[!htb]
+    \begin{minipage}{0.4\linewidth}
+        The Profit is
+
+        \[max(X_{t} - K_{i}, 0) - C_{i} = (X_{t} - K_{i})^{+} - C_{i}\]
+
+    \end{minipage}
+    \begin{minipage}{0.65\linewidth}
+        \centering
+        \includegraphics[width=10cm]{Graphs/LongCallEx.png}
+        \caption{}
+        \label{fig:LC}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[!h]
+    \begin{minipage}{0.4\linewidth}
+
+        The Profit is
+
+        \[max(K_{i} - X_{t}, 0) - P_{i} = (K_{i} - X_{t})^{+} - P_{i}\]
+
+    \end{minipage}
+    \begin{minipage}{0.65\linewidth}
+        \centering
+        \includegraphics[width=10cm]{Graphs/LongPutEx.png}
+        \caption{}
+        \label{fig:LP}
+    \end{minipage}
+\end{figure}
+\clearpage
+\section{Detailed ExPost Returns}\label{app:Detail}
+\begin{table}[!htbp]
+\captionsetup{skip=5pt}
+\begin{center}
+	\caption{\\ \textbf{Detailed Portfolio Optimization Returns}}
+    \scalebox{0.75}{\input{TexFiles/Output_4Contracts}}
+    \label{tab:Output4}
+\end{center}
+\end{table}
+
+\begin{table}[!htbp]
+\captionsetup{skip=5pt}
+\begin{center}
+	\caption{\\ \textbf{Detailed Portfolio Optimization Returns: Cutoff}}
+    \scalebox{0.75}{\input{TexFiles/Output_4Contracts_Cutoff}}
+    \label{tab:Output4_Cutoff}
+\end{center}
+\end{table}
+\end{appendix}
+
+\end{document}
+
+
+

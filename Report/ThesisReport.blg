@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2019)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: ThesisReport.aux
+The style file: unsrtnat.bst
+Database file #1: References.bib
+Warning--empty journal in black1973pricing
+You've used 11 entries,
+            2481 wiz_defined-function locations,
+            622 strings with 6154 characters,
+and the built_in function-call counts, 4028 in all, are:
+= -- 374
+> -- 139
+< -- 11
++ -- 60
+- -- 38
+* -- 278
+:= -- 620
+add.period$ -- 34
+call.type$ -- 11
+change.case$ -- 23
+chr.to.int$ -- 11
+cite$ -- 12
+duplicate$ -- 216
+empty$ -- 394
+format.name$ -- 61
+if$ -- 868
+int.to.chr$ -- 1
+int.to.str$ -- 12
+missing$ -- 10
+newline$ -- 63
+num.names$ -- 33
+pop$ -- 87
+preamble$ -- 1
+purify$ -- 11
+quote$ -- 0
+skip$ -- 138
+stack$ -- 0
+substring$ -- 224
+swap$ -- 33
+text.length$ -- 1
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 77
+warning$ -- 1
+while$ -- 38
+width$ -- 0
+write$ -- 148
+(There was 1 warning)

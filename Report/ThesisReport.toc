@@ -1,0 +1,16 @@
+\babel@toc {english}{}
+\contentsline {section}{\numberline {1}Abstract}{2}{section.1}% 
+\contentsline {section}{\numberline {2}Introduction}{3}{section.2}% 
+\contentsline {subsection}{\numberline {2.1}Overview}{3}{subsection.2.1}% 
+\contentsline {section}{\numberline {3}Model}{6}{section.3}% 
+\contentsline {subsection}{\numberline {3.1}Portfolio Optimization Method}{6}{subsection.3.1}% 
+\contentsline {subsection}{\numberline {3.2}Returns}{8}{subsection.3.2}% 
+\contentsline {subsection}{\numberline {3.3}Portfolio Optimization Steps}{9}{subsection.3.3}% 
+\contentsline {section}{\numberline {4}Data}{12}{section.4}% 
+\contentsline {section}{\numberline {5}Estimation}{17}{section.5}% 
+\contentsline {section}{\numberline {6}Results}{19}{section.6}% 
+\contentsline {subsection}{\numberline {6.1}Portfolio Optimization: Initial Model}{19}{subsection.6.1}% 
+\contentsline {subsection}{\numberline {6.2}Portfolio Optimization: Cutoff Adjusted}{23}{subsection.6.2}% 
+\contentsline {section}{\numberline {7}Conclusion}{26}{section.7}% 
+\contentsline {section}{\numberline {A}Options Overview}{29}{appendix.A}% 
+\contentsline {section}{\numberline {B}Detailed ExPost Returns}{31}{appendix.B}% 
