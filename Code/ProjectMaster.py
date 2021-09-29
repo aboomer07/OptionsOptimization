@@ -51,17 +51,19 @@ global cut
 global covid
 global detail_out
 global plt_pct_fmt
+global samps
 
 incl_side = True
 show_plots = False
 import_clean = True
 refit = True
-N = 3000
+N = 10000
 four = True
-cut = np.inf
+cut = 0.1
 covid = False
-detail_out = False
+detail_out = True
 plt_pct_fmt = mtick.PercentFormatter(xmax=1, symbol='')
+samps = 10
 
 ################################################################################
 # Import Data
@@ -132,6 +134,10 @@ $\\mathbf{\\beta}$ & %s & %s & %s & %s \\\\
 \\end{tabular}
 \\end{center}"""
 
+omegas = []
+alphas = []
+betas = []
+
 shill['RR'] = np.log(shill.Price).diff()
 returns = shill[(shill['Date'].dt.year >= 1950)]
 
@@ -160,12 +166,20 @@ omega = am_fit.params['omega']
 alpha = am_fit.params['alpha[1]']
 beta = am_fit.params['beta[1]']
 
+omegas.append(omega)
+alphas.append(alpha)
+betas.append(beta)
+
 for i in range(horizon):
 	if (i != 0)&(refit):
 		fit = arch_model(returns[:(n+i)].RR, vol='Garch', mean='zero').fit()
 		omega = fit.params['omega']
 		alpha = fit.params['alpha[1]']
 		beta = fit.params['beta[1]']
+
+		omegas.append(omega)
+		alphas.append(alpha)
+		betas.append(beta)
 
 	condvol[n+i] = np.sqrt(omega+(alpha*(yT[n+i-1]**2))+(beta*(condvol[n+i-1]**2)))
 
@@ -175,7 +189,7 @@ returns['SR'] = returns['RR'] / returns['SDEV']
 returns = returns.reset_index().drop('index', axis=1)
 
 ################################################################################
-# Plot Log Returns and Variance from GARCH
+# Plot Log Returns and Variance from GARCH, Params Series
 ################################################################################
 
 print('#################################')
@@ -197,6 +211,26 @@ if show_plots:
 	plt.show()
 else:
 	plt.savefig(graph_out + '/GARCH_TS_plot.png')
+	plt.close()
+
+fig, ax = plt.subplots(1)
+garch_plt = returns[(returns.Date >= '2018-12-01')&(returns.Date <= '2021-08-01')].reset_index()[['Date']]
+garch_plt['omegas'] = omegas
+garch_plt['alphas'] = alphas
+garch_plt['betas'] = betas
+
+garch_plt.plot(x='Date', y='omegas', label=r'$\hat{\omega}$', ax=ax)
+garch_plt.plot(x='Date', y='alphas', label=r'$\hat{\alpha}$', ax=ax)
+garch_plt.plot(x='Date', y='betas', label=r'$\hat{\beta}$', ax=ax)
+ax.set_xlabel('Date')
+ax.set_ylabel('Parameter Values')
+plt.legend()
+plt.tight_layout()
+
+if show_plots:
+	plt.show()
+else:
+	plt.savefig(graph_out + '/GARCH_Param_Plot.png')
 	plt.close()
 
 ################################################################################
@@ -305,7 +339,7 @@ with open(tex_out + '/Table1.tex', "w") as text_file:
 
 fig, ax = plt.subplots(1)
 sns.histplot(returns[returns.Date.dt.year < 2019].SR, ax=ax)
-ax.set_xlabel('$\epsilon_{t}$', fontdict={'size':20})
+ax.set_xlabel('$\hat{\epsilon}_{t}$', fontdict={'size':20})
 ax.set_ylabel('Frequency', fontdict={'size':20})
 ax.xaxis.set_major_formatter(plt_pct_fmt)
 ax.yaxis.set_ticklabels([])
@@ -497,7 +531,9 @@ dates = opts.Date.unique()
 if four:
 	df = opts[(opts.Date.isin(dates))&(opts.Region != 'Other')]
 else:
-	df = opts[(opts.Date.isin(dates))&(opts.Moneyness >= -0.1)&(opts.Moneyness <= 0.1)]
+	df = opts[(opts.Date.isin(dates))&(opts.Region == 'Other')&(opts.Moneyness >= -0.1)&(opts.Moneyness <= 0.1)]
+	df = df.merge(df[df.Side == 'Long'].groupby(['Date', 'option_type'])['Strike'].apply(lambda x: x.sample(samps)).reset_index().drop('level_2', axis=1), how='inner', on=['Date', 'option_type', 'Strike'])
+	df = pd.concat([df, opts[(opts.Date.isin(dates))&(opts.Region != 'Other')]], axis=0, ignore_index=True)
 df = df.sort_values(by='Date')
 
 weights = []
@@ -577,7 +613,7 @@ act = act.drop(0, axis=1)
 act['Rf Weight'] = 1 - act['SumWeight']
 act = act.drop('SumWeight', axis=1)
 
-if (detail_out)&(four):
+if (detail_out):
 	act_out = act.copy()
 	act_out['ExPost'] = 100 * act_out['ExPost']
 	act_out['ATM Call Weight'] = 100 * act_out['ATM Call Weight']
@@ -596,6 +632,8 @@ if (detail_out)&(four):
 		name += '_Covid'
 	if (cut < np.inf)&(not covid):
 		name += '_Cutoff'
+	if not four:
+		name += '_All_' + str(samps)
 	name += '.tex'
 
 	with open(name, "w") as text_file:
