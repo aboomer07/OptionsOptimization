@@ -1,15 +1,13 @@
-\BOOKMARK [1][-]{section.1}{Abstract}{}% 1
-\BOOKMARK [1][-]{section.2}{Introduction}{}% 2
-\BOOKMARK [2][-]{subsection.2.1}{Overview}{section.2}% 3
-\BOOKMARK [1][-]{section.3}{Model}{}% 4
-\BOOKMARK [2][-]{subsection.3.1}{Portfolio Optimization Method}{section.3}% 5
-\BOOKMARK [2][-]{subsection.3.2}{Returns}{section.3}% 6
-\BOOKMARK [2][-]{subsection.3.3}{Portfolio Optimization Steps}{section.3}% 7
-\BOOKMARK [1][-]{section.4}{Data}{}% 8
-\BOOKMARK [1][-]{section.5}{Estimation}{}% 9
-\BOOKMARK [1][-]{section.6}{Results}{}% 10
-\BOOKMARK [2][-]{subsection.6.1}{Portfolio Optimization: Initial Model}{section.6}% 11
-\BOOKMARK [2][-]{subsection.6.2}{Portfolio Optimization: Cutoff Adjusted}{section.6}% 12
-\BOOKMARK [1][-]{section.7}{Conclusion}{}% 13
-\BOOKMARK [1][-]{appendix.A}{Options Overview}{}% 14
-\BOOKMARK [1][-]{appendix.B}{Detailed ExPost Returns}{}% 15
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{The Model}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Portfolio Optimization Method}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Returns}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Portfolio Optimization Steps}{section.2}% 5
+\BOOKMARK [1][-]{section.3}{Data}{}% 6
+\BOOKMARK [1][-]{section.4}{Estimation}{}% 7
+\BOOKMARK [1][-]{section.5}{Results}{}% 8
+\BOOKMARK [2][-]{subsection.5.1}{Portfolio Optimization: Initial Model}{section.5}% 9
+\BOOKMARK [2][-]{subsection.5.2}{Portfolio Optimization: Cutoff Adjusted}{section.5}% 10
+\BOOKMARK [1][-]{section.6}{Conclusion}{}% 11
+\BOOKMARK [1][-]{appendix.A}{Options Overview}{}% 12
+\BOOKMARK [1][-]{appendix.B}{Detailed ExPost Returns}{}% 13

@@ -1,9 +1,40 @@
-\begin{thebibliography}{11}
+\begin{thebibliography}{13}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Barone-Adesi et~al.(2008)Barone-Adesi, Engle, and
+  Mancini]{barone2008garch}
+Giovanni Barone-Adesi, Robert~F Engle, and Loriano Mancini.
+\newblock A garch option pricing model with filtered historical simulation.
+\newblock \emph{The review of financial studies}, 21\penalty0 (3):\penalty0
+  1223--1258, 2008.
+
+\bibitem[Black and Scholes(1973)]{black1973pricing}
+F~Black and M~Scholes.
+\newblock The pricing of options and corporate liabilities. journal of
+  political economy 81 (may-june).
+\newblock 1973.
+
+\bibitem[Bliss and Panigirtzoglou(2004)]{bliss2004option}
+Robert~R Bliss and Nikolaos Panigirtzoglou.
+\newblock Option-implied risk aversion estimates.
+\newblock \emph{The journal of finance}, 59\penalty0 (1):\penalty0 407--446,
+  2004.
+
+\bibitem[Chaput and Ederington(2003)]{chaput2003option}
+J~Scott Chaput and Louis~H Ederington.
+\newblock Option spread and combination trading.
+\newblock \emph{The journal of Derivatives}, 10\penalty0 (4):\penalty0 70--88,
+  2003.
+
+\bibitem[Eraker(2013)]{eraker2013performance}
+Bj{\o}rn Eraker.
+\newblock The performance of model based option trading strategies.
+\newblock \emph{Review of Derivatives Research}, 16\penalty0 (1):\penalty0
+  1--23, 2013.
 
 \bibitem[Faias and Santa-Clara(2017)]{faias2017optimal}
 Jos{\'e}~Afonso Faias and Pedro Santa-Clara.
@@ -11,6 +42,18 @@ Jos{\'e}~Afonso Faias and Pedro Santa-Clara.
   option mispricing.
 \newblock \emph{Journal of Financial and Quantitative Analysis}, 52\penalty0
   (1):\penalty0 277--303, 2017.
+
+\bibitem[Gsell(2008)]{gsell2008assessing}
+Markus Gsell.
+\newblock Assessing the impact of algorithmic trading on markets: A simulation
+  approach.
+\newblock Technical report, CFS Working Paper, 2008.
+
+\bibitem[Hannah(2015)]{hannah2015stochastic}
+Lauren~A Hannah.
+\newblock Stochastic optimization.
+\newblock \emph{International Encyclopedia of the Social \& Behavioral
+  Sciences}, 2:\penalty0 473--481, 2015.
 
 \bibitem[Malmgren and Stys(2011)]{malmgren2011computerized}
 Harald Malmgren and Mark Stys.
@@ -23,43 +66,6 @@ Harry Markowitz.
 \newblock \emph{The Journal of Finance}, 7\penalty0 (1):\penalty0 77--91, March
   1952.
 
-\bibitem[Zhao and Palomar(2018)]{zhao2018markowitz}
-Licheng Zhao and Daniel~P Palomar.
-\newblock A markowitz portfolio approach to options trading.
-\newblock \emph{IEEE Transactions on Signal Processing}, 66\penalty0
-  (16):\penalty0 4223--4238, 2018.
-
-\bibitem[Hannah(2015)]{hannah2015stochastic}
-Lauren~A Hannah.
-\newblock Stochastic optimization.
-\newblock \emph{International Encyclopedia of the Social \& Behavioral
-  Sciences}, 2:\penalty0 473--481, 2015.
-
-\bibitem[Gsell(2008)]{gsell2008assessing}
-Markus Gsell.
-\newblock Assessing the impact of algorithmic trading on markets: A simulation
-  approach.
-\newblock Technical report, CFS Working Paper, 2008.
-
-\bibitem[Chaput and Ederington(2003)]{chaput2003option}
-J~Scott Chaput and Louis~H Ederington.
-\newblock Option spread and combination trading.
-\newblock \emph{The journal of Derivatives}, 10\penalty0 (4):\penalty0 70--88,
-  2003.
-
-\bibitem[Barone-Adesi et~al.(2008)Barone-Adesi, Engle, and
-  Mancini]{barone2008garch}
-Giovanni Barone-Adesi, Robert~F Engle, and Loriano Mancini.
-\newblock A garch option pricing model with filtered historical simulation.
-\newblock \emph{The review of financial studies}, 21\penalty0 (3):\penalty0
-  1223--1258, 2008.
-
-\bibitem[Eraker(2013)]{eraker2013performance}
-Bj{\o}rn Eraker.
-\newblock The performance of model based option trading strategies.
-\newblock \emph{Review of Derivatives Research}, 16\penalty0 (1):\penalty0
-  1--23, 2013.
-
 \bibitem[Plessen and Bemporad(2017)]{plessen2017parallel}
 Mogens~Graf Plessen and Alberto Bemporad.
 \newblock Parallel investments in multiple call and put options for the
@@ -67,10 +73,16 @@ Mogens~Graf Plessen and Alberto Bemporad.
 \newblock In \emph{2017 American Control Conference (ACC)}, pages 1091--1096.
   IEEE, 2017.
 
-\bibitem[Black and Scholes(1973)]{black1973pricing}
-F~Black and M~Scholes.
-\newblock The pricing of options and corporate liabilities. journal of
-  political economy 81 (may-june).
-\newblock 1973.
+\bibitem[Santa-Clara and Saretto(2009)]{santa2009option}
+Pedro Santa-Clara and Alessio Saretto.
+\newblock Option strategies: Good deals and margin calls.
+\newblock \emph{Journal of Financial Markets}, 12\penalty0 (3):\penalty0
+  391--417, 2009.
+
+\bibitem[Zhao and Palomar(2018)]{zhao2018markowitz}
+Licheng Zhao and Daniel~P Palomar.
+\newblock A markowitz portfolio approach to options trading.
+\newblock \emph{IEEE Transactions on Signal Processing}, 66\penalty0
+  (16):\penalty0 4223--4238, 2018.
 
 \end{thebibliography}

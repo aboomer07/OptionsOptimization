@@ -1,0 +1,33 @@
+\begin{thebibliography}{4}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Markowitz(1952)]{markowitz}
+Harry Markowitz.
+\newblock Portfolio selection.
+\newblock \emph{The Journal of Finance}, 7\penalty0 (1):\penalty0 77--91, March
+  1952.
+
+\bibitem[Faias and Santa-Clara(2017)]{faias2017optimal}
+Jos{\'e}~Afonso Faias and Pedro Santa-Clara.
+\newblock Optimal option portfolio strategies: Deepening the puzzle of index
+  option mispricing.
+\newblock \emph{Journal of Financial and Quantitative Analysis}, 52\penalty0
+  (1):\penalty0 277--303, 2017.
+
+\bibitem[Zhao and Palomar(2018)]{zhao2018markowitz}
+Licheng Zhao and Daniel~P Palomar.
+\newblock A markowitz portfolio approach to options trading.
+\newblock \emph{IEEE Transactions on Signal Processing}, 66\penalty0
+  (16):\penalty0 4223--4238, 2018.
+
+\bibitem[Bliss and Panigirtzoglou(2004)]{bliss2004option}
+Robert~R Bliss and Nikolaos Panigirtzoglou.
+\newblock Option-implied risk aversion estimates.
+\newblock \emph{The journal of finance}, 59\penalty0 (1):\penalty0 407--446,
+  2004.
+
+\end{thebibliography}

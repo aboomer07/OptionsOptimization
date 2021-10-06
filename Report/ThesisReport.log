@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  27 SEP 2021 10:46
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  6 OCT 2021 10:04
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1034,6 +1034,10 @@ Package: natbib 2010/09/13 8.31b (PWD, AO)
 LaTeX Info: Redefining \cite on input line 694.
 \c@NAT@ctr=\count333
 )
+(/usr/local/texlive/2019/texmf-dist/tex/latex/filecontents/filecontents.sty
+Package: filecontents 2018/05/30 v1.4 Create an external file from within a LaT
+eX document
+)
 (/usr/local/texlive/2019/texmf-dist/tex/latex/csquotes/csquotes.sty
 Package: csquotes 2018/04/13 v5.2d context-sensitive quotations (JAW)
 \csq@reset=\count334
@@ -1053,6 +1057,14 @@ Package csquotes Info: ... configuration file loaded successfully.
 (/usr/local/texlive/2019/texmf-dist/tex/latex/csquotes/csquotes.cfg
 File: csquotes.cfg 
 )))
+(/usr/local/texlive/2019/texmf-dist/tex/latex/float/float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count340
+\float@exts=\toks43
+\float@box=\box74
+\@float@everytoks=\toks44
+\@floatcapt=\box75
+)
 Package csquotes Info: Checking for multilingual support...
 Package csquotes Info: ... found 'babel' package.
 Package csquotes Info: Adjusting default style.
@@ -1061,34 +1073,34 @@ Package csquotes Info: Redefining alias 'default' -> 'english'.
 (./ThesisReport.aux)
 \openout1 = `ThesisReport.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 7.
-LaTeX Font Info:    ... okay on input line 7.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 7.
-LaTeX Font Info:    ... okay on input line 7.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 7.
-LaTeX Font Info:    ... okay on input line 7.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 7.
-LaTeX Font Info:    ... okay on input line 7.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 7.
-LaTeX Font Info:    ... okay on input line 7.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 7.
-LaTeX Font Info:    ... okay on input line 7.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 7.
-LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
 
 (/usr/local/texlive/2019/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count340
+\scratchcounter=\count341
 \scratchdimen=\dimen292
-\scratchbox=\box74
-\nofMPsegments=\count341
-\nofMParguments=\count342
-\everyMPshowfont=\toks43
-\MPscratchCnt=\count343
+\scratchbox=\box76
+\nofMPsegments=\count342
+\nofMParguments=\count343
+\everyMPshowfont=\toks45
+\MPscratchCnt=\count344
 \MPscratchDim=\dimen293
-\MPnumerator=\count344
-\makeMPintoPDFobject=\count345
-\everyMPtoPDFconversion=\toks44
+\MPnumerator=\count345
+\makeMPintoPDFobject=\count346
+\everyMPtoPDFconversion=\toks46
 ) (/usr/local/texlive/2019/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
 Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
 
@@ -1111,21 +1123,21 @@ ABD: EveryShipout initializing macros
 Package todonotes Warning: The length marginparwidth is less than 2cm and will 
 most likely cause issues with the appearance of inserted todonotes. The issue c
 an be solved by adding a line like \setlength {\marginparwidth }{2cm} prior to 
-loading the todonotes package. on input line 7.
+loading the todonotes package. on input line 8.
 
-\AtBeginShipoutBox=\box75
-Package hyperref Info: Link coloring OFF on input line 7.
+\AtBeginShipoutBox=\box77
+Package hyperref Info: Link coloring OFF on input line 8.
 (/usr/local/texlive/2019/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2016/05/21 v2.44 Cross-referencing by name of section
 
 (/usr/local/texlive/2019/texmf-dist/tex/generic/oberdiek/gettitlestring.sty
 Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 )
-\c@section@level=\count346
+\c@section@level=\count347
 )
-LaTeX Info: Redefining \ref on input line 7.
-LaTeX Info: Redefining \pageref on input line 7.
-LaTeX Info: Redefining \nameref on input line 7.
+LaTeX Info: Redefining \ref on input line 8.
+LaTeX Info: Redefining \pageref on input line 8.
+LaTeX Info: Redefining \nameref on input line 8.
 
 (./ThesisReport.out) (./ThesisReport.out)
 \@outlinefile=\write6
@@ -1168,13 +1180,14 @@ LaTeX Info: Redefining \nameref on input line 7.
 
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: subfig package v1.3 is loaded.
+Package caption Info: float package is loaded.
 Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
-\c@lstlisting=\count347
-<TSE.png, id=91, 335.2525pt x 151.56625pt>
+\c@lstlisting=\count348
+<TSE.png, id=83, 335.2525pt x 151.56625pt>
 File: TSE.png Graphic file (type png)
 <use TSE.png>
-Package pdftex.def Info: TSE.png  used on input line 19.
+Package pdftex.def Info: TSE.png  used on input line 21.
 (pdftex.def)             Requested size: 251.43875pt x 113.6744pt.
 [1
 
@@ -1197,210 +1210,219 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has
 been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.60 \clearpage
+l.62 \clearpage
                 [1] [2
 
 ] [3
 
 ] [4] [5] [6]
-Overfull \hbox (50.19286pt too wide) in paragraph at lines 107--109
+Overfull \hbox (50.19286pt too wide) in paragraph at lines 106--108
 \OML/cmm/m/it/12 K[]; K[]; []  ; K[]$\OT1/cmr/m/n/12 , and $\OML/cmm/m/it/12 P$
  \OT1/cmr/m/n/12 num-ber of put op-tion con-tracts with strike prices $\OML/cmm
 /m/it/12 K[]; K[]; []  ; K[]$\OT1/cmr/m/n/12 .
  []
 
-[7] [8] [9] [10] [11] (./TexFiles/Table1.tex)
-Overfull \hbox (30.0pt too wide) in paragraph at lines 231--241
-[] 
- []
-
-(./TexFiles/CBOE_Dict.tex)
-<Graphs/RR_20190115.png, id=244, 462.528pt x 346.896pt>
+[7] [8] [9] [10] [11] (./TexFiles/Table1.tex) [12] (./TexFiles/CBOE_Dict.tex)
+<Graphs/RR_20190115.png, id=245, 462.528pt x 346.896pt>
 File: Graphs/RR_20190115.png Graphic file (type png)
 <use Graphs/RR_20190115.png>
-Package pdftex.def Info: Graphs/RR_20190115.png  used on input line 259.
+Package pdftex.def Info: Graphs/RR_20190115.png  used on input line 258.
 (pdftex.def)             Requested size: 241.84842pt x 181.38736pt.
 
-Overfull \hbox (0.56961pt too wide) in paragraph at lines 259--260
+Overfull \hbox (0.56961pt too wide) in paragraph at lines 258--259
 [][] 
  []
 
-<Graphs/SR_20190115.png, id=246, 462.528pt x 346.896pt>
+<Graphs/SR_20190115.png, id=247, 462.528pt x 346.896pt>
 File: Graphs/SR_20190115.png Graphic file (type png)
 <use Graphs/SR_20190115.png>
-Package pdftex.def Info: Graphs/SR_20190115.png  used on input line 262.
+Package pdftex.def Info: Graphs/SR_20190115.png  used on input line 261.
 (pdftex.def)             Requested size: 241.84842pt x 181.38736pt.
 
-Overfull \hbox (14.22636pt too wide) in paragraph at lines 262--263
+Overfull \hbox (14.22636pt too wide) in paragraph at lines 261--262
 [][] 
  []
 
 
-Overfull \hbox (16.26784pt too wide) in paragraph at lines 258--265
+Overfull \hbox (16.26784pt too wide) in paragraph at lines 257--264
 []$[]$ $[]$
  []
 
-[12] [13 <./Graphs/RR_20190115.png> <./Graphs/SR_20190115.png>]
-<Graphs/Contract_Count.png, id=268, 462.528pt x 346.896pt>
+[13]
+<Graphs/Contract_Count.png, id=260, 462.528pt x 346.896pt>
 File: Graphs/Contract_Count.png Graphic file (type png)
 <use Graphs/Contract_Count.png>
-Package pdftex.def Info: Graphs/Contract_Count.png  used on input line 273.
+Package pdftex.def Info: Graphs/Contract_Count.png  used on input line 272.
 (pdftex.def)             Requested size: 341.43306pt x 256.08499pt.
- [14 <./Graphs/Contract_Count.png>] (./TexFiles/Table3.tex)
-<Graphs/Fig3_kde.png, id=280, 462.528pt x 346.896pt>
+ [14 <./Graphs/RR_20190115.png> <./Graphs/SR_20190115.png>]
+<Graphs/Opt_Series.png, id=269, 462.528pt x 346.896pt>
+File: Graphs/Opt_Series.png Graphic file (type png)
+<use Graphs/Opt_Series.png>
+Package pdftex.def Info: Graphs/Opt_Series.png  used on input line 283.
+(pdftex.def)             Requested size: 284.52756pt x 213.40593pt.
+ [15 <./Graphs/Contract_Count.png>] (./TexFiles/Table3.tex) [16 <./Graphs/Opt_S
+eries.png>]
+<Graphs/Fig3_kde.png, id=287, 462.528pt x 346.896pt>
 File: Graphs/Fig3_kde.png Graphic file (type png)
 <use Graphs/Fig3_kde.png>
-Package pdftex.def Info: Graphs/Fig3_kde.png  used on input line 293.
+Package pdftex.def Info: Graphs/Fig3_kde.png  used on input line 303.
 (pdftex.def)             Requested size: 369.88582pt x 277.42719pt.
-<Graphs/Tbill_TS.png, id=286, 462.528pt x 346.896pt>
+
+[17 <./Graphs/Fig3_kde.png>]
+<Graphs/Tbill_TS.png, id=298, 462.528pt x 346.896pt>
 File: Graphs/Tbill_TS.png Graphic file (type png)
 <use Graphs/Tbill_TS.png>
-Package pdftex.def Info: Graphs/Tbill_TS.png  used on input line 304.
+Package pdftex.def Info: Graphs/Tbill_TS.png  used on input line 314.
 (pdftex.def)             Requested size: 284.52756pt x 213.40593pt.
- [15] [16 <./Graphs/Fig3_kde.png> <./Graphs/Tbill_TS.png>] (./TexFiles/ARCH_Mod
-el.tex)
-<Graphs/GARCH_TS_plot.png, id=304, 462.528pt x 346.896pt>
+ (./TexFiles/ARCH_Model.tex) [18 <./Graphs/Tbill_TS.png>]
+<Graphs/GARCH_TS_plot.png, id=313, 462.528pt x 346.896pt>
 File: Graphs/GARCH_TS_plot.png Graphic file (type png)
 <use Graphs/GARCH_TS_plot.png>
-Package pdftex.def Info: Graphs/GARCH_TS_plot.png  used on input line 328.
+Package pdftex.def Info: Graphs/GARCH_TS_plot.png  used on input line 338.
 (pdftex.def)             Requested size: 284.52756pt x 213.40593pt.
- [17] [18 <./Graphs/GARCH_TS_plot.png>]
-<Graphs/Fig4_OOPSRet.png, id=328, 462.528pt x 346.896pt>
+ [19 <./Graphs/GARCH_TS_plot.png>]
+<Graphs/GARCH_Param_Plot.png, id=322, 462.528pt x 346.896pt>
+File: Graphs/GARCH_Param_Plot.png Graphic file (type png)
+<use Graphs/GARCH_Param_Plot.png>
+Package pdftex.def Info: Graphs/GARCH_Param_Plot.png  used on input line 349.
+(pdftex.def)             Requested size: 284.52756pt x 213.40593pt.
+ [20 <./Graphs/GARCH_Param_Plot.png>]
+<Graphs/Fig4_OOPSRet.png, id=334, 462.528pt x 346.896pt>
 File: Graphs/Fig4_OOPSRet.png Graphic file (type png)
 <use Graphs/Fig4_OOPSRet.png>
-Package pdftex.def Info: Graphs/Fig4_OOPSRet.png  used on input line 345.
-(pdftex.def)             Requested size: 341.43306pt x 256.08499pt.
- [19
+Package pdftex.def Info: Graphs/Fig4_OOPSRet.png  used on input line 365.
+(pdftex.def)             Requested size: 284.52756pt x 213.40593pt.
 
-] (./TexFiles/Table4.tex) [20 <./Graphs/Fig4_OOPSRet.png>]
-(./TexFiles/Table5.tex)
-<Graphs/WeightsPlot.png, id=352, 455.301pt x 343.2825pt>
+(./TexFiles/Table4.tex) [21 <./Graphs/Fig4_OOPSRet.png>] (./TexFiles/Table5.tex
+)
+<Graphs/WeightsPlot.png, id=349, 455.301pt x 343.2825pt>
 File: Graphs/WeightsPlot.png Graphic file (type png)
 <use Graphs/WeightsPlot.png>
-Package pdftex.def Info: Graphs/WeightsPlot.png  used on input line 376.
+Package pdftex.def Info: Graphs/WeightsPlot.png  used on input line 396.
 (pdftex.def)             Requested size: 312.9803pt x 235.98517pt.
- [21 <./Graphs/WeightsPlot.png>]
-<Graphs/Cum_Returns.png, id=362, 462.528pt x 346.896pt>
+ [22]
+<Graphs/Cum_Returns.png, id=358, 462.528pt x 346.896pt>
 File: Graphs/Cum_Returns.png Graphic file (type png)
 <use Graphs/Cum_Returns.png>
-Package pdftex.def Info: Graphs/Cum_Returns.png  used on input line 387.
+Package pdftex.def Info: Graphs/Cum_Returns.png  used on input line 407.
 (pdftex.def)             Requested size: 312.9803pt x 234.74811pt.
- [22 <./Graphs/Cum_Returns.png>]
+ [23 <./Graphs/WeightsPlot.png>]
 <Graphs/Fig4_OOPSRet_Cutoff.png, id=369, 462.528pt x 346.896pt>
 File: Graphs/Fig4_OOPSRet_Cutoff.png Graphic file (type png)
 <use Graphs/Fig4_OOPSRet_Cutoff.png>
-Package pdftex.def Info: Graphs/Fig4_OOPSRet_Cutoff.png  used on input line 400
+Package pdftex.def Info: Graphs/Fig4_OOPSRet_Cutoff.png  used on input line 420
 .
-(pdftex.def)             Requested size: 341.43306pt x 256.08499pt.
- (./TexFiles/Table4_Cutoff.tex) (./TexFiles/Table5_Cutoff.tex)
-<Graphs/Cum_Returns_Cutoff.png, id=370, 462.528pt x 346.896pt>
-File: Graphs/Cum_Returns_Cutoff.png Graphic file (type png)
-<use Graphs/Cum_Returns_Cutoff.png>
-Package pdftex.def Info: Graphs/Cum_Returns_Cutoff.png  used on input line 427.
-
-(pdftex.def)             Requested size: 312.9803pt x 234.74811pt.
-<Graphs/WeightsPlot_Cutoff.png, id=371, 455.301pt x 343.2825pt>
+(pdftex.def)             Requested size: 284.52756pt x 213.40593pt.
+ [24 <./Graphs/Cum_Returns.png>]
+(./TexFiles/Table4_Cutoff.tex) [25 <./Graphs/Fig4_OOPSRet_Cutoff.png>]
+(./TexFiles/Table5_Cutoff.tex)
+<Graphs/WeightsPlot_Cutoff.png, id=390, 455.301pt x 343.2825pt>
 File: Graphs/WeightsPlot_Cutoff.png Graphic file (type png)
 <use Graphs/WeightsPlot_Cutoff.png>
-Package pdftex.def Info: Graphs/WeightsPlot_Cutoff.png  used on input line 436.
+Package pdftex.def Info: Graphs/WeightsPlot_Cutoff.png  used on input line 449.
 
 (pdftex.def)             Requested size: 312.9803pt x 235.98517pt.
- [23
+ [26 <./Graphs/WeightsPlot_Cutoff.png>]
+<Graphs/Cum_Returns_Cutoff.png, id=397, 462.528pt x 346.896pt>
+File: Graphs/Cum_Returns_Cutoff.png Graphic file (type png)
+<use Graphs/Cum_Returns_Cutoff.png>
+Package pdftex.def Info: Graphs/Cum_Returns_Cutoff.png  used on input line 460.
 
- <./Graphs/Fig4_OOPSRet_Cutoff.png>] [24 <./Graphs/Cum_Returns_Cutoff.png>] [25
- <./Graphs/WeightsPlot_Cutoff.png>] [26
+(pdftex.def)             Requested size: 284.52756pt x 213.40593pt.
+ [27 <./Graphs/Cum_Returns_Cutoff.png>] [28
 
-] (./ThesisReport.bbl [27
+] [29] (./ThesisReport.bbl [30
 
-]) [28]
-Overfull \hbox (7.71806pt too wide) detected at line 471
+]) [31]
+Overfull \hbox (7.71806pt too wide) detected at line 495
 \OML/cmm/m/it/12 max\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 X[] \OMS/cmsy/m/n/12 ^^@ 
 \OML/cmm/m/it/12 K[]; \OT1/cmr/m/n/12 0) \OMS/cmsy/m/n/12 ^^@ \OML/cmm/m/it/12 
 C[] \OT1/cmr/m/n/12 = (\OML/cmm/m/it/12 X[] \OMS/cmsy/m/n/12 ^^@ \OML/cmm/m/it/
 12 K[]\OT1/cmr/m/n/12 )[] \OMS/cmsy/m/n/12 ^^@ \OML/cmm/m/it/12 C[]
  []
 
-<Graphs/LongCallEx.png, id=416, 462.528pt x 346.896pt>
+<Graphs/LongCallEx.png, id=438, 462.528pt x 346.896pt>
 File: Graphs/LongCallEx.png Graphic file (type png)
 <use Graphs/LongCallEx.png>
-Package pdftex.def Info: Graphs/LongCallEx.png  used on input line 476.
+Package pdftex.def Info: Graphs/LongCallEx.png  used on input line 500.
 (pdftex.def)             Requested size: 284.52756pt x 213.40593pt.
 
-Overfull \hbox (25.36772pt too wide) in paragraph at lines 468--480
+Overfull \hbox (25.36772pt too wide) in paragraph at lines 492--504
 []$[]$ $[]$ 
  []
 
 
-Overfull \hbox (6.05229pt too wide) detected at line 487
+Overfull \hbox (6.05229pt too wide) detected at line 511
 \OML/cmm/m/it/12 max\OT1/cmr/m/n/12 (\OML/cmm/m/it/12 K[] \OMS/cmsy/m/n/12 ^^@ 
 \OML/cmm/m/it/12 X[]; \OT1/cmr/m/n/12 0) \OMS/cmsy/m/n/12 ^^@ \OML/cmm/m/it/12 
 P[] \OT1/cmr/m/n/12 = (\OML/cmm/m/it/12 K[] \OMS/cmsy/m/n/12 ^^@ \OML/cmm/m/it/
 12 X[]\OT1/cmr/m/n/12 )[] \OMS/cmsy/m/n/12 ^^@ \OML/cmm/m/it/12 P[]
  []
 
-<Graphs/LongPutEx.png, id=417, 462.528pt x 346.896pt>
+<Graphs/LongPutEx.png, id=439, 462.528pt x 346.896pt>
 File: Graphs/LongPutEx.png Graphic file (type png)
 <use Graphs/LongPutEx.png>
-Package pdftex.def Info: Graphs/LongPutEx.png  used on input line 492.
+Package pdftex.def Info: Graphs/LongPutEx.png  used on input line 516.
 (pdftex.def)             Requested size: 284.52756pt x 213.40593pt.
 
-Overfull \hbox (25.36772pt too wide) in paragraph at lines 483--496
+Overfull \hbox (25.36772pt too wide) in paragraph at lines 507--520
 []$[]$ $[]$ 
  []
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-[29
+[32
 
-] [30 <./Graphs/LongCallEx.png> <./Graphs/LongPutEx.png>]
+] [33 <./Graphs/LongCallEx.png> <./Graphs/LongPutEx.png>]
 (./TexFiles/Output_4Contracts.tex) (./TexFiles/Output_4Contracts_Cutoff.tex)
-[31
+[34
 
-]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 518.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 518.
+] [35]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 542.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 542.
  (./ThesisReport.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 518.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 518.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 542.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 542.
 Package rerunfilecheck Info: File `ThesisReport.out' has not changed.
-(rerunfilecheck)             Checksum: 1A8A68EB19B4C2DC8CDF51DB987EE27F;860.
+(rerunfilecheck)             Checksum: D09E0ADD87192723030CAFE89A3B1F47;762.
  ) 
 Here is how much of TeX's memory you used:
- 35082 strings out of 492616
- 683356 string characters out of 6129482
+ 35163 strings out of 492616
+ 684832 string characters out of 6129482
  1047667 words of memory out of 5000000
- 38383 multiletter control sequences out of 15000+600000
- 544402 words of font info for 68 fonts, out of 8000000 for 9000
+ 38449 multiletter control sequences out of 15000+600000
+ 545010 words of font info for 70 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 64i,15n,96p,1568b,585s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 64i,15n,96p,2184b,583s stack positions out of 5000i,500n,10000p,200000b,80000s
 pdfTeX warning (dest): name{Hfootnote.1} has been referenced but does not exi
 st, replaced by a fixed one
 
-</usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><
-/usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></u
-sr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></u
-sr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></us
-r/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr
-/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/
-local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/lo
-cal/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/loca
-l/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/
-texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/te
-xlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texl
-ive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texliv
-e/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2
-019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2019
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2019/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmsl10.pfb></usr/local/texlive/2019/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2019/texm
-f-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2019/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2019/texmf-d
-ist/fonts/type1/public/amsfonts/cm/cmti12.pfb>
-Output written on ThesisReport.pdf (32 pages, 669297 bytes).
+</usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><
+/usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></
+usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></us
+r/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb></us
+r/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr
+/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/
+local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/l
+ocal/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/loc
+al/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local
+/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/t
+exlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/tex
+live/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texli
+ve/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive
+/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/20
+19/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2019/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2019/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmsl10.pfb></usr/local/texlive/2019/texm
+f-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2019/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2019/texmf-d
+ist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2019/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmti12.pfb>
+Output written on ThesisReport.pdf (36 pages, 743001 bytes).
 PDF statistics:
- 522 PDF objects out of 1000 (max. 8388607)
- 417 compressed objects within 5 object streams
- 84 named destinations out of 1000 (max. 500000)
- 304 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 550 PDF objects out of 1000 (max. 8388607)
+ 436 compressed objects within 5 object streams
+ 90 named destinations out of 1000 (max. 500000)
+ 298 words of extra memory for PDF output out of 10000 (max. 10000000)
 

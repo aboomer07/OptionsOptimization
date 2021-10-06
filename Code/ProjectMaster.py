@@ -57,13 +57,14 @@ incl_side = True
 show_plots = False
 import_clean = True
 refit = True
-N = 10000
+N = 6000
 four = True
-cut = 0.1
+cut = np.inf
 covid = False
 detail_out = True
 plt_pct_fmt = mtick.PercentFormatter(xmax=1, symbol='')
 samps = 10
+# np.random.seed(1234)
 
 ################################################################################
 # Import Data
@@ -139,14 +140,19 @@ alphas = []
 betas = []
 
 shill['RR'] = np.log(shill.Price).diff()
+shill['RV'] = shill['RR'].rolling(60, closed='left').std()
 returns = shill[(shill['Date'].dt.year >= 1950)]
 
 yT = returns[returns.Date.dt.year<=2018].RR
 
-am = arch_model(yT, vol='Garch', mean='zero')
+scale = 1
+
+am = arch_model(yT*scale, vol='Garch', mean='zero', rescale=False)
 am_fit = am.fit()
 
-params = ["{:.3f}".format(i) for i in am_fit.params]
+params = am_fit.params
+params['omega'] = params['omega'] / (scale ** 2)
+params = ["{:.3f}".format(i) for i in params]
 std_err = ["{:.3f}".format(i) for i in am_fit.std_err]
 tvals = ["{:.3f}".format(i) for i in am_fit.tvalues]
 pvals = ["{:.3f}".format(i) for i in am_fit.pvalues]
@@ -160,9 +166,10 @@ horizon = returns[returns.Date.dt.year > 2018].shape[0]
 n = len(am_fit.resid)
 
 condvol = np.array(list(am_fit.conditional_volatility) + [0]*horizon)
+condvol = condvol / scale
 yT = returns.RR.values
 
-omega = am_fit.params['omega']
+omega = am_fit.params['omega'] / (scale ** 2)
 alpha = am_fit.params['alpha[1]']
 beta = am_fit.params['beta[1]']
 
@@ -171,21 +178,26 @@ alphas.append(alpha)
 betas.append(beta)
 
 for i in range(horizon):
+	prev_vol = am_fit.conditional_volatility.values[-1]
 	if (i != 0)&(refit):
-		fit = arch_model(returns[:(n+i)].RR, vol='Garch', mean='zero').fit()
-		omega = fit.params['omega']
+		fit = arch_model(returns[:(n+i)].RR * scale, vol='Garch', mean='zero', rescale=False).fit()
+		omega = fit.params['omega'] / (scale ** 2)
 		alpha = fit.params['alpha[1]']
 		beta = fit.params['beta[1]']
+
+		prev_vol = fit.conditional_volatility.values[-1]
 
 		omegas.append(omega)
 		alphas.append(alpha)
 		betas.append(beta)
 
-	condvol[n+i] = np.sqrt(omega+(alpha*(yT[n+i-1]**2))+(beta*(condvol[n+i-1]**2)))
+	condvol[n+i] = np.sqrt(omega+(alpha*(yT[n+i-1]**2))+(beta*(prev_vol**2)))
 
+# condvol = returns[(returns.Date.dt.year < 2019)].RR.std() * np.ones((n + horizon))
 returns.loc[:, 'SDEV'] = condvol
 returns['CondVar'] = returns['SDEV']**2
 returns['SR'] = returns['RR'] / returns['SDEV']
+# returns['SR'] = returns['RR'] / returns['RV']
 returns = returns.reset_index().drop('index', axis=1)
 
 ################################################################################
@@ -413,15 +425,26 @@ print('Creating Simluated Prices')
 print('#################################')
 
 rem = returns[returns.Date.dt.year >= 2019].shape[0]
-SimRet = np.empty(shape=(rem - 1, N))
-SR = returns.SR.values
-for i in range(1, rem):
-	SimRet[i - 1, :] = np.random.choice(SR[:(i + n)], N)
+SimRet = np.empty(shape=(rem-1, N))
+# SR = returns.SR.values
+for i in range(rem-1):
+	SimRet[i, :] = np.random.choice(returns.loc[:(i+n), 'SR'], N)
 
-
-adj_ret = np.multiply(condvol[n + 1:].reshape(rem - 1, 1), SimRet)
-St = returns[n:-1].Price.values.reshape((rem - 1, 1))
+adj_ret = np.multiply(condvol[n+1:].reshape(rem-1, 1), SimRet)
+St = returns[n:-1].Price.values.reshape((rem-1, 1))
 ST = np.multiply(St, np.exp(adj_ret))
+
+################################################################################
+# Download Tbill
+################################################################################
+
+tbill = pd.read_csv(data_path + '/TB4WK.csv')
+tbill['DATE'] = pd.to_datetime(tbill.DATE, format='%Y-%m')
+tbill = tbill.rename(columns={'DATE' : 'Date', 'TB4WK' : 'Rf'})
+tbill['Rf'] = tbill['Rf'].apply(lambda x: float(x) if x != '.' else np.nan)
+tbill['Rf'] = tbill['Rf'] / (100)
+tbill['Rf'] = np.exp(np.log(1 + tbill['Rf']) / 12) - 1
+tbill['YM'] = tbill.Date.dt.year.astype(str) + tbill.Date.dt.month.astype(str).str.rjust(2, '0')
 
 ################################################################################
 # Step 3 Faias Santa Clara
@@ -453,6 +476,8 @@ opts['Price_t+1'] = opts['ExpYM'].map(price_dict)
 opts = opts.sort_values(by=['option_type', 'Date', 'Strike']).reset_index().drop('index', axis=1)
 opts['Moneyness'] = (opts['Price_t'] / opts['Strike']) - 1
 
+opts['Rf'] = opts['YM'].map(dict(zip(tbill.YM, tbill.Rf)))
+
 four_df = pd.concat([
 	opts[(opts['option_type'] == 'C')&(opts['Moneyness'] >= -0.01)&(opts['Moneyness'] <= 0.01)].groupby(['Date', 'Expiry'], as_index=False)[['ask_eod', 'bid_eod']].apply(lambda x: opts.loc[abs(x['ask_eod'] - x['bid_eod']).idxmin(), ['Strike', 'option_type']]).assign(Region='ATM Call'),
 	opts[(opts['option_type'] == 'P')&(opts['Moneyness'] >= -0.01)&(opts['Moneyness'] <= 0.01)].groupby(['Date', 'Expiry'], as_index=False)[['ask_eod', 'bid_eod']].apply(lambda x: opts.loc[abs(x['ask_eod'] - x['bid_eod']).idxmin(), ['Strike', 'option_type']]).assign(Region='ATM Put'), 
@@ -472,13 +497,6 @@ if incl_side:
 print('#################################')
 print('Importing and Merging Risk Free Data')
 print('#################################')
-
-tbill = pd.read_csv(data_path + '/Tbill.csv')
-tbill['DATE'] = pd.to_datetime(tbill.DATE, format='%Y-%m-%d')
-tbill = tbill.rename(columns={'DATE' : 'Date', 'DGS1MO' : 'Rf'})
-tbill['Rf'] = tbill['Rf'].apply(lambda x: float(x) if x != '.' else np.nan)
-tbill['Rf'] = tbill['Rf'] / 100
-opts = opts.merge(tbill, how='left', on='Date')
 
 if incl_side:
 	opts['OptRet'] = np.where(opts['Side'] == 'Long', 
@@ -508,24 +526,21 @@ print('#################################')
 print('Running Optimization')
 print('#################################')
 
-def optim(optret, rf, gamma, solver):
-	As = optret.T
+if incl_side:
+	As = cp.Parameter((N, 8))
+	w = cp.Variable(8)
+	constraints = [w >= 0]
+else:
+	As = cp.Parameter((N, 4))
+	w = cp.Variable(4)
+	constriants = []
 
-	w = cp.Variable(As.shape[1])
-	mat_var = As@w + rf + 1
+rf_val = cp.Parameter(value=0)
 
-	utils = cp.sum(cp.power(mat_var, (1-gamma))/(1-gamma))/As.shape[0]
-
-	objective = cp.Maximize(utils)
-	if incl_side:
-		constraints = [w >= 0]
-	else:
-		constraints = []
-
-	prob = cp.Problem(objective, constraints)
-	result = prob.solve(solver=solver, verbose=True)
-
-	return(w.value)
+mat_var = As@w + rf_val + 1
+utils = cp.sum(cp.power(mat_var, -9)/-9)/N
+objective = cp.Maximize(utils)
+prob = cp.Problem(objective, constraints)
 
 dates = opts.Date.unique()
 if four:
@@ -536,25 +551,21 @@ else:
 	df = pd.concat([df, opts[(opts.Date.isin(dates))&(opts.Region != 'Other')]], axis=0, ignore_index=True)
 df = df.sort_values(by='Date')
 
+input_vals = [[np.array(df[df.Date == pd.to_datetime(date).strftime(format='%Y-%m-%d')].OptRet.to_list()).T, df[df.Date == pd.to_datetime(date).strftime(format='%Y-%m-%d')].Rf.values[0]] for date in dates]
+
 weights = []
-for date in dates:
-	str_date = pd.to_datetime(date).strftime(format='%Y-%m-%d')
-	curr = df[df.Date == date]
-	curr = curr.reset_index()
-	curr_ret = np.array(curr.OptRet.to_list()).reshape(curr.shape[0], N)
-	curr_rf = curr.Rf.values[0]
+for i in range(len(input_vals)):
+	As.value = input_vals[i][0]
+	rf_val.value = input_vals[i][1]
+	prob.solve(solver='MOSEK', verbose=True, warm_start=True)
 
-	if (covid)&(str_date == '2020-03-17')&(four):
-		curr_ret[curr[curr.Region == 'ATM Put'].index.values] = np.zeros((2, N))
+	if cut < np.inf:
+		while any(w.value > cut):
+			input_vals[i][0][:, w.value > cut] = np.zeros((N, sum(w.value > cut)))
+			As.value = input_vals[i][0]
+			prob.solve(solver='MOSEK', verbose=True, warm_start=True)
 
-	curr_w = optim(curr_ret, curr_rf, 10, 'MOSEK')
-
-	if (not covid)&(cut < np.inf):
-		while any(curr_w > cut):
-			curr_ret[curr_w > cut] = np.zeros((sum(curr_w > cut), N))
-			curr_w = optim(curr_ret, curr_rf, 10, 'MOSEK')
-
-	weights.append(curr_w)
+	weights.append(w.value)
 
 df['Weights'] = np.concatenate([np.array(weight).reshape(len(weight), 1) for weight in weights])
 
@@ -590,6 +601,7 @@ print('#################################')
 print('Constructing Output')
 print('#################################')
 
+df['MeanSim'] = df['OptRet'].apply(lambda x: np.mean(x))
 df['Weights'] = abs(df.Weights)
 df['TotAct'] = df['ActRet'] * df['Weights']
 df['TotSim'] = (df['OptRet'] * df['Weights']).apply(lambda x: np.mean(x))
@@ -812,7 +824,8 @@ if four:
 
 	sp = tab_df.groupby('Date', as_index=False)[['Price_t', 'Rf']].first()
 	sp['S&P 500'] = (sp['Price_t']/sp['Price_t'].shift())-1
-	sp['Risk Free'] = (sp['Rf']/sp['Rf'].shift())-1
+	sp['S&P 500'] = np.log(sp['Price_t']).diff()
+	sp['Risk Free'] = sp['Rf']
 	sp_ret = sp['S&P 500'].dropna()
 	tbill_ret = sp['Risk Free'].dropna()
 
@@ -911,22 +924,24 @@ if four:
 ################################################################################
 
 sp_cum = (1 + returns[(returns.Date >= '2019-01-01')&(returns.Date <= '2021-05-01')].RR).cumprod() * 100
-rf_cum = (1 + opts.groupby('Date')['Rf'].first().values).cumprod() * 100
+rf_cum = (1 + opts.groupby('Expiry')['Rf'].first().values).cumprod() * 100
 oops_cum = (1 + act['ExPost']).cumprod() * 100
 
-cum_df = pd.DataFrame(act['Date'])
+cum_df = pd.DataFrame(act['Expiry'])
 cum_df['S&P 500'] = sp_cum.values
 cum_df['Risk-free'] = rf_cum
 cum_df['ExPost'] = oops_cum
-cum_df = cum_df.set_index('Date')
+cum_df = cum_df.set_index('Expiry')
+
+limit = [0.95 * cum_df.min().min(), 1.1 * cum_df.max().max()]
 
 fig, ax = plt.subplots(1)
 
-cum_df['S&P 500'].plot(ylabel='Wealth ($)', ax=ax, ylim=[80, 1.3*cum_df['S&P 500'].max()])
-cum_df['Risk-free'].plot(ax=ax, ylim=[80, 1.3*cum_df['Risk-free'].max()])
-cum_df['ExPost'].plot(ax=ax, ylim=[80, 1.3*cum_df['ExPost'].max()])
+cum_df['S&P 500'].plot(ylabel='Wealth ($)', xlabel='Date', ax=ax, ylim=limit)
+cum_df['Risk-free'].plot(ax=ax, xlabel='Date', ylim=limit)
+cum_df['ExPost'].plot(ax=ax, xlabel='Date', ylim=limit)
 ax.axhline(100, color='black', linestyle='dotted', label='Starting Wealth')
-ax.axvline('2020-03-17', color='red', linestyle='dotted', label='COVID')
+ax.axvline('2020-02-20', color='red', linestyle='dotted', label='Feb 2020')
 plt.legend(loc='upper left')
 plt.tight_layout()
 
@@ -981,3 +996,66 @@ if four:
 	else:
 		plt.savefig(graph_out + "/20200317_OptRet.png")
 		plt.close()
+
+################################################################################
+# Option Closing Prices Time Series
+################################################################################
+
+opt_price = opts[opts.Region != 'Other'].groupby(['Date', 'Region'], as_index=False)['close'].first()
+
+fig, ax = plt.subplots(1)
+opt_price[opt_price.Region == 'ATM Call'].plot(x='Date', y='close', label='ATM Call', ax=ax, ylabel='Closing Price ($)')
+opt_price[opt_price.Region == 'OTM Call'].plot(x='Date', y='close', label='OTM Call', ax=ax)
+opt_price[opt_price.Region == 'ATM Put'].plot(x='Date', y='close', label='ATM Put', ax=ax)
+opt_price[opt_price.Region == 'OTM Put'].plot(x='Date', y='close', label='OTM Put', ax=ax)
+ax.axvline('2020-02-20', color='black', linestyle='dotted', label='Feb 2020')
+plt.legend()
+
+if show_plots:
+	plt.show()
+else:
+	plt.savefig(graph_out + "/Opt_Series.png")
+	plt.close()
+
+################################################################################
+# Save Some Outputs
+################################################################################
+
+out_string = "Full Sharpe: %s\n"
+out_string += "No Covid Sharpe: %s\n"
+out_string += "Lowest Monthly Return: %s\n"
+out_string += "Highest Monthly Return: %s\n"
+out_string += "Mean Return: %s\n"
+out_string += "Std Return: %s\n"
+out_string += "Risk Free Min: %s\n"
+out_string += "Risk Free Max: %s\n"
+out_string += "Covid ATM Call Short: %s\n"
+out_string += "Net Short Pct Months: %s\n"
+out_string += "OTM Put Short Pct Months: %s\n"
+out_string += "Mean OTM Put Weight: %s\n"
+out_string += "Ending Wealth: %s\n"
+
+out_tup = []
+out_tup.append(act['ExPost'].mean()/act['ExPost'].std())
+out_tup.append(act[~act.Date.isin(['2020-02-20', '2020-03-17'])]['ExPost'].mean()/act[~act.Date.isin(['2020-02-20', '2020-03-17'])]['ExPost'].std())
+out_tup.append(act['ExPost'].min())
+out_tup.append(act['ExPost'].max())
+out_tup.append(act['ExPost'].mean())
+out_tup.append(act['ExPost'].std())
+out_tup.append(act['Rf Weight'].min())
+out_tup.append(act['Rf Weight'].max())
+out_tup.append(act[act.Date == '2020-02-20']['ATM Call Weight'].values[0])
+out_tup.append(np.mean(act['Rf Weight'] >= 1))
+out_tup.append(np.mean(act['OTM Put Weight'] < 0))
+out_tup.append(act['OTM Put Weight'].mean())
+out_tup.append(oops_cum.tail(1).values[0])
+out_tup = tuple(out_tup)
+
+out_string = out_string % out_tup
+
+name = out_path + "/Results"
+if cut < np.inf:
+	name += "_Cutoff"
+name += ".txt"
+with open(name, 'w') as f:
+	f.write(out_string)
