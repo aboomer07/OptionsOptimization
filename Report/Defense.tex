@@ -48,7 +48,7 @@
                     citecolor=blue,
                     linkbordercolor=blue
 }
-
+\definecolor{Cobalt}{rgb}{0.0, 0.28, 0.67}
 
 \makeatletter
 \def\input@path{{"../Output/"}}
@@ -71,16 +71,16 @@
 \begin{frame}{Introduction}
     \begin{itemize}
         \item This thesis investigates the topic of portfolio selection/optimization, which originates with the seminal paper of \cite{markowitz}.
-        \item Standard portfolio selection optimizes a set of real weights on a basket of stocks
-        \item I extend this topic through replacing a basket of stocks with a basket of options on the S\&P500, and the use of a GARCH volatility model.
+        \item Standard portfolio selection optimizes a set of real weights on a basket of stocks plus a risk-free asset.
+        \item I extend this topic through replacing the stocks with a basket of options on the S\&P500, and by replacing the traditional mean variance objective function with an expected utility framework.
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Problem Statement}
     \begin{itemize}
-        \item I use S\&P500 options data from the Chicago Board of Exchange (CBOE) spanning from January 2019 to May 2021.
-        \item Following \cite{faias2017optimal}, I use a constant relative risk aversion (CRRA) utility function to optimize next period wealth.
-        \item Next period wealth is reformulated in terms of the weighted sum of simulated option returns.
+        \item I use S\&P500 options data from the Chicago Board of Exchange (CBOE) spanning from January 2019 to May 2021. This data includes the Covid-19 pandemic, an extension on previous studies.
+        \item I use a constant relative risk aversion (CRRA) utility function to optimize next period wealth.
+        \item Next period wealth is reformulated in terms of the weighted sum of simulated option returns plus a risk-free asset with known returns.
     \end{itemize}
 \end{frame}
 
@@ -88,16 +88,109 @@
     \begin{itemize}
         \item In this research, I aim to set the theoretical modeling framework of an algorithm trading in the real markets. 
         \item With this foundation, I employ portfolio selection techniques found in the literature, while diving further into the practical discussion.
-        \item This paper can also be used a baseline for a more in depth comparison of different volatility or returns prediction models.
+        \item The optimization proposed in this paper is sensitive to the forecasting technique used, so I see this project as an opportunity to continue future research and comparison of other methods.
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Previous Literature}
     \begin{itemize}
-        \item \cite{markowitz} employed a mean-variance model to select a portfolio of stocks.
-        \item Multiple papers have addressed portfolio selection with options, including \cite{zhao2018markowitz} and \cite{faias2017optimal}.
-        \item This thesis builds off the work of \cite{faias2017optimal}, who approach portfolio selection with options using a returns simulation framework based on ad-hoc volatility estimation.
+        \item Building off of \cite{markowitz}, \cite{zhao2018markowitz} studied portfolio optimization including both stocks and options, plus the risk-free asset.
+        \item They utilized a dynamic rebalancing strategy, where portfolio returns are based on change in asset price. Stock returns from change in stock price, option returns from change in option price.
+        \item To calculate change in option price, \cite{zhao2018markowitz} assumed returns to follow geometric brownian motion, using this model to analytically solve for the change.
+        \item They maintained the mean-variance objective function as in \cite{markowitz}.
     \end{itemize}
+\end{frame}
+
+\begin{frame}{Previous Literature}
+    \begin{itemize}
+        \item Contrary to \cite{zhao2018markowitz}, \cite{faias2017optimal} employ a hold until expiration strategy on a basket of only options plus the risk-free asset.
+        \item Option returns under this strategy are calculated based on the value of the option at expiration and the initial traded price.
+        \item Additionally, rather than assuming a model for option prices to arrive at a closed form solution for change in value, \cite{faias2017optimal} simulate value at expiration using an ad-hoc volatility estimation to forecast future returns of the underlying asset.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Previous Literature}
+    \begin{itemize}
+        \item I follow the approach of \cite{faias2017optimal} most closely, using their hold until expiration strategy with a simulated value at expiration.
+        \item Dynamic rebalancing simulated future options is possible, but more difficult, involving assumption of a model for option prices.
+        \item I extend the work of \cite{faias2017optimal} by using a GARCH(1, 1) model for the volatility of log returns of the underlying asset.
+        \item Additionally, they analyze the optimization performance from 1996-2013, while I look at more recent data, including Covid, from January 2019-May 2021.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Data: S\&P500}
+\begin{figure}[H]
+\begin{center}
+\captionsetup{width=10cm, skip=5pt}
+\caption{\\ \textbf{S\&P 500 Data} \rule{10cm}{0.5pt}\\ \footnotesize{\textit{
+Graph shows time series of log returns for S\&P500 monthly average closing price from January 2019-May 2021. Returns on y-axis are percentages.}}}
+\includegraphics[width=7cm]{Graphs/SP_Data_Plot.png}
+\label{fig:Results}
+\end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Data: Options}
+\begin{figure}[H]
+\begin{center}
+\captionsetup{width=12cm, skip=5pt}
+\caption{\\ \textbf{CBOE Data} \rule{12cm}{0.5pt}\\ \footnotesize{\textit{
+Table shows relevant variables for S\&P500 options data. Graph shows time series of option closing prices from January 2019-May 2021. Four contracts are considered, at-the-money (ATM) and out-of-the-money (OTM) calls and puts.}}}
+    \begin{minipage}{0.4\linewidth}
+        \scalebox{0.7}{\input{TexFiles/CBOE_Dict}}
+    \end{minipage}
+    \begin{minipage}{0.55\linewidth}
+        \begin{center}
+            \includegraphics[width=7cm]{Graphs/Opt_Series.png}
+        \end{center}
+    \end{minipage}
+\label{fig:Results}
+\end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Data: Risk-Free Asset}
+\begin{figure}[H]
+\captionsetup{width=10cm, skip=0pt}
+    \begin{center}
+        \caption{\\ \textbf{Risk Free Asset Returns} \rule{10cm}{0.5pt}\\ \footnotesize{\textit{Time Series of 1-Month Treasury Bill Returns from St. Louis FRED. Time span is from August 2001 to August 2021. Time span of available CBOE option data is shown in red.}}}
+        \includegraphics[width=8cm]{Graphs/Tbill_TS.png}
+        \label{fig:Tbill_TS}
+    \end{center}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Methodology}
+Log returns are defined as the first difference of the log of the average monthly S\&P500 closing price:
+
+\[y_{t} = log(S_{t}) - log(S_{t - 1})\]
+
+Standardized returns based on fitted volatility, defined later, are $\hat{\epsilon}_{t} = \frac{y_{t}}{\hat{\sigma_{t}}}$. Simulated log returns are generated using a bootstrapped distribution of historic $\hat{\epsilon}_{t}$.
+
+\[\textcolor{Cobalt}{y^{n}_{t + h}} = \hat{\sigma}_{t + h} \textcolor{Cobalt}{\epsilon^{n}_{t + h}} \quad \forall n \in N \ and \ \forall h \in T - t\]
+
+\vspace{1cm}
+
+Simulated option returns are calculated from simluated prices $\textcolor{Cobalt}{S_{t + h|t+h-1}^{n}} = S_{t + h - 1} e^{\textcolor{Cobalt}{y_{t + h}^{n}}}$.
+\noindent
+\begin{align} 
+\nonumber \textcolor{Cobalt}{C_{t+1 \mid t}^{n}(k)} &= \max (\textcolor{Cobalt}{S_{t+1 \mid t}^{n}} - k, 0) \quad \quad k = K_{t, c_{1}}, \cdots, K_{t, c_{C}} 
+\\ \nonumber \textcolor{Cobalt}{P_{t+1 \mid t}^{n}(k)} &= \max (k - \textcolor{Cobalt}{S_{t+1 \mid t}^{n}}, 0) \quad \quad k = K_{t, p_{1}}, \cdots, K_{t, p_{P}}
+\\ \nonumber \textcolor{Cobalt}{r_{t+1 \mid t, c}^{n}(k)} &= \frac{\textcolor{Cobalt}{C_{t+1 \mid t}^{n}(k)}}{C_{t, k}} - 1 \quad \quad k = K_{t, c_{1}}, \cdots, K_{t, c_{C}}
+\\ \nonumber \textcolor{Cobalt}{r_{t+1 \mid t, p}^{n}(k)} &= \frac{\textcolor{Cobalt}{P_{t+1 \mid t}^{n}(k)}}{P_{t, k}} - 1 \quad \quad k = K_{t, p_{1}}, \cdots, K_{t, p_{P}}
+\end{align}
+\end{frame}
+
+\begin{frame}{Methodology}
+Formally, in this paper I optimize the simulated wealth of the next period $
+\textcolor{Cobalt}{A_{t + 1 \mid t}^{n}}$. This is an empirical approximation of the conditional expected utility that has LLN convergence. The optimization is therefore:
+\[\max_{\mathbf{W}_{t}} \frac{1}{N} \sum_{n = 1}^{N} U(\textcolor{Cobalt}{A_{t+1 \mid t}^{n}})\]
+Where $\mathbf{W}_{t}$ is the vector of allocated weights, n is a single simulation, and N is the number of simulations. This returns a vector of optimized weights $\mathbf{W}_{t}^{*}$.
+
+\vspace{1cm}
+The utility function U is:
+\[U(A)=\left\{\begin{array}{ll}\frac{1}{1-\gamma} A^{1-\gamma}, & \text { if } \gamma \neq 1 \\ \log (A), & \text { if } \gamma=1\end{array}\right.\]
+where $\gamma$ is the CRRA risk aversion parameter. $\gamma$ is set to 10, higher than 4 found in \cite{bliss2004option}, to induce shrinkage in the weights on the risky asset.
 \end{frame}
 
 \begin{frame}{Methodology}
@@ -111,57 +204,18 @@ I assume that the log returns follow a normal distribution with a time varying v
 \end{frame}
 
 \begin{frame}{Methodology}
-Formally, in this paper I optimize the wealth of the next period $A_{t + 1}$
-\[\max_{\mathbf{W}_{t}} E[U(A_{t+1})|F_{t}]\]
-Where $F_{t}$ as the available information at time $t$, $E$ is the expectation operator. $\mathbf{W}_{t}$ is the vector of allocated weights. The optimization is done via a simulation of the next period wealth $A_{t+1}^{n}$. This returns a vector of optimized weights $\mathbf{W}_{t}^{*}$.
-
-\vspace{1cm}
-Where $\gamma$ is the CRRA risk aversion parameter, the utility function U is:
-\[U(A)=\left\{\begin{array}{ll}\frac{1}{1-\gamma} A^{1-\gamma}, & \text { if } \gamma \neq 1 \\ \log (A), & \text { if } \gamma=1\end{array}\right.\]
-\end{frame}
-
-\begin{frame}{Methodology}
-    \begin{itemize}
-        \item Option returns are calculated under a hold until expiration strategy, wherein after the initial trade, the trader cannot further adjust the portfolio.
-        \item The model uses a CRRA expected utility function rather than the traditional mean-variance framework.
-        \item $\gamma$ is set to 10, higher than 4 found in \cite{bliss2004option}, to induce shrinkage in $\mathbf{W}_{t}^{*}$.
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Methodology}
-Standardized returns based on the fitted conditional volatility series are $\hat{\epsilon}_{t} = \frac{y_{t}}{\hat{\sigma_{t}}}$. Simulated log returns are generated using a bootstrapped distribution of historic $\hat{\epsilon}_{t}$.
-
-\[\tilde{y}^{n}_{t + h} = \hat{\sigma}_{t + h} \tilde{\epsilon}^{n}_{t + h} \quad \forall n \in N \ and \ \forall h \in T - t\]
-
-\vspace{1cm}
-
-Simulated option returns are calculated from simluated prices $S_{t + h|t+h-1}^{n} = S_{t + h - 1} e^{\tilde{y}_{t + h}^{n}}$.
-\noindent
-\begin{align} 
-\nonumber C_{t+1 \mid t}^{n}(k) &= \max (S_{t+1 \mid t}^{n} - k, 0) \quad \quad k = K_{t, c_{1}}, \cdots, K_{t, c_{C}} 
-\\ \nonumber P_{t+1 \mid t}^{n}(k) &= \max (k - S_{t+1 \mid t}^{n}, 0) \quad \quad k = K_{t, p_{1}}, \cdots, K_{t, p_{P}}
-\\ \nonumber r_{t+1 \mid t, c}^{n}(k) &= \frac{C_{t+1 \mid t}^{n}(k)}{C_{t, k}} - 1 \quad \quad k = K_{t, c_{1}}, \cdots, K_{t, c_{C}}
-\\ \nonumber r_{t+1 \mid t, p}^{n}(k) &= \frac{P_{t+1 \mid t}^{n}(k)}{P_{t, k}} - 1 \quad \quad k = K_{t, p_{1}}, \cdots, K_{t, p_{P}}
-\end{align}
-\end{frame}
-
-\begin{frame}{Methodology}
 Simulated next period wealth is formulated as current wealth times the simulated total return of the basket of options, dependent on the choice variable $\mathbf{W}_{t}$
 
-\[A_{t+1 \mid t}^{n} = A_{t}(1 + rp_{t + 1 \mid t}^{n}(\mathbf{W}_{t}))\]
+\[\textcolor{Cobalt}{A_{t+1 \mid t}^{n}} = A_{t}(1 + \textcolor{Cobalt}{rp_{t + 1 \mid t}^{n}}(\mathbf{W}_{t}))\]
 
-This quantity is used to optimize $\mathbf{W}_{t}$ based on the empirical mean of N simulations, which is independent of current wealth $A_{t}$.
-\end{frame}
+Where $\textcolor{Cobalt}{rp_{t + 1 \mid t}^{n}}$ is:
 
-\begin{frame}{Results}
-\begin{figure}[H]
-\captionsetup{width=10cm, skip=0pt}
-    \begin{center}
-        \caption{\\ \textbf{Portfolio Optimization Returns} \rule{10cm}{0.5pt}\\ \footnotesize{\textit{Histogram of portfolio optimization returns is shown. The time period is January 2019 to May 2021.}}}
-        \includegraphics[width=7cm]{Graphs/Fig4_OOPSRet.png}
-        \label{fig:Fig4_OOPSRet}
-    \end{center}
-\end{figure}
+\[\textcolor{Cobalt}{rp_{t + 1 \mid t}^{n}}(\mathbf{W}_{t}) = rf_{t} + \langle\mathbf{W}_{t}, \textcolor{Cobalt}{\mathbf{R}_{t+1 \mid t}^{n}}\rangle\]
+With:
+\[\textcolor{Cobalt}{\mathbf{R}_{t+1|t}^{n}} = \begin{bmatrix} \textcolor{Cobalt}{r_{t + 1|t, c_{1}}^{n}}, \dotsb, \textcolor{Cobalt}{r_{t + 1|t, c_{C}}^{n}}, \textcolor{Cobalt}{r_{t + 1|t, p_{1}}^{n}}, \dotsb, \textcolor{Cobalt}{r_{t + 1|t, p_{P}}^{n}} \end{bmatrix} - \begin{bmatrix} rf_{t}, \dotsb, rf_{t} \end{bmatrix}\]
+
+\vspace{1cm}
+This quantity is used to optimize $\mathbf{W}_{t}$, which is independent of current wealth $A_{t}$.
 \end{frame}
 
 \begin{frame}{Results}
@@ -195,9 +249,18 @@ This quantity is used to optimize $\mathbf{W}_{t}$ based on the empirical mean o
 
 \begin{frame}{Conclusion}
     \begin{itemize}
-        \item Portfolio optimization returns show a sharpe ratio of -0.03 vs. 0.33 for the underlying S\&P500 in the time period.
+        \item Portfolio optimization returns show a sharpe ratio of -0.04 vs. 0.33 for the underlying S\&P500 in the time period.
         \item The ex-post returns do, however, show a lower skew and kurtosis, meaning the returns are closer to normality, even with the Covid months.
-        \item Removing February and March of 2020 results in a sharpe ratio of 0.14. These months represent 6\% of the sample, so a larger sample with less weight on these months may impact results.
+        \item Removing February and March of 2020 results in a sharpe ratio of 0.14. These months represent 6\% of the sample, so a larger sample with less weight on these months may impact results. Doing the same for the S\&P500 results in a Sharpe Ratio of 1.02.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Future Work}
+    \begin{itemize}
+        \item Options can only be traded in integer quantities. Imposing this constraint on the weights would result in a non-convex feasible set, increasing both computational complexity and real world applicability of the solution.
+        \item Combing the simulation approach of \cite{faias2017optimal} and the dynamic rebalancing of \cite{zhao2018markowitz} could result in a more profitable model, but additional model specification.
+        \item Incorporating a larger set of contracts (multiple underlying assets, maturities, futher OTM) could yield better results through a larger choice set, but also expose model to low liquidity risks and contract redundancy.
+        \item Other models for simluating future returns may prove to be more effective than GARCH in this setting, including ones that better incorporate real time information such as sentiment analysis models.
     \end{itemize}
 \end{frame}
 
@@ -210,6 +273,27 @@ This quantity is used to optimize $\mathbf{W}_{t}$ based on the empirical mean o
 \begin{frame}{References}
 % \nocite{*}
 \bibliography{References}    
+\end{frame}
+
+
+\begin{frame}{Notes}
+    \begin{itemize}
+        \item Average risk-free return from 2001-2013 is 1.57 times higher than 2019-2021.
+        \item The result of a spike in weight on the risk-free asset is consistent with risk aversion in anticipation of a crisis.
+        \item GARCH doesn't take into account any anticipation of future events, only price and volatility information that is available in the underlying asset.
+        \item Back in February-March 2020, there was uncertainty about how governments would respond to the crisis. Both the markets and average people were unsure about the level of stimulus and money printing central banks would engage in. Based on the spike in puts at the March contract with April expiration, the options markets thought the S\&P500 would continue to decline, while in reality in bounced back, in part due to unprecendented aggressive government intervention.
+        \item This is a downside of the hold until expiration strategy, future losses were baked in after the trade was made. A dynamic rebalancing strategy could have theoretically shed the unprofitable positions earlier and mitigated loss as markets adjusted to new information.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Notes}
+    \begin{itemize}
+        \item Eraker, F/SC, and others have found that option returns are not adequately modeled by their first and second moments, so including higher level moments through the utility function allows this non standard distribution to be more effectively accounted for.
+        \item Skew, kurtosis values of standardized returns indicate GARCH may not even be an appropriate model.
+        \item While the most extreme weight in this sample was actually profitable, choosing extreme weights in other settings may not be.
+        \item The power utility function is able to take into account deeper moments of the returns distribution in the optimization depending on gamma.
+        \item Options are duplicated into short and long options to incorporate transaction costs, short options enter the model multiplied by -1.
+    \end{itemize}
 \end{frame}
 
 \end{document}

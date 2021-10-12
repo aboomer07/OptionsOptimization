@@ -193,11 +193,9 @@ for i in range(horizon):
 
 	condvol[n+i] = np.sqrt(omega+(alpha*(yT[n+i-1]**2))+(beta*(prev_vol**2)))
 
-# condvol = returns[(returns.Date.dt.year < 2019)].RR.std() * np.ones((n + horizon))
 returns.loc[:, 'SDEV'] = condvol
 returns['CondVar'] = returns['SDEV']**2
 returns['SR'] = returns['RR'] / returns['SDEV']
-# returns['SR'] = returns['RR'] / returns['RV']
 returns = returns.reset_index().drop('index', axis=1)
 
 ################################################################################
@@ -426,7 +424,6 @@ print('#################################')
 
 rem = returns[returns.Date.dt.year >= 2019].shape[0]
 SimRet = np.empty(shape=(rem-1, N))
-# SR = returns.SR.values
 for i in range(rem-1):
 	SimRet[i, :] = np.random.choice(returns.loc[:(i+n), 'SR'], N)
 
@@ -877,7 +874,8 @@ grp4['Max'] = np.where(grp4.Region == 'S&P 500', grp4['Max'], 100 * grp4['Max'])
 
 grp4['SR'] = grp4['Mean']/grp4['Std']
 
-grp4['Region'] = np.where(grp4.Region == 'OOPS', 'ExPost', grp4.Region)
+grp4['Region'] = np.where(grp4.Region == 'OOPS', 'My Strategy', grp4.Region)
+grp4['Region'] = np.where(grp4.Region == 'S&P 500', 'S&P 500 Only', grp4.Region)
 
 tab4_str = tabulate(grp4.set_index('Region'), tablefmt='latex', floatfmt=(".1f", ".1f", ".1f", ".1f",".1f", '.2f', '.2f', '.2f', '.2f'), headers=[''] + grp4.columns[1:])
 
@@ -1059,3 +1057,21 @@ if cut < np.inf:
 name += ".txt"
 with open(name, 'w') as f:
 	f.write(out_string)
+
+################################################################################
+# SP500 During Sample
+################################################################################
+
+fig, ax = plt.subplots(1)
+returns[(returns.Date >= '2019-01-01')&(returns.Date <= '2021-05-01')].plot(x='Date', y='RR', ax=ax, xlabel = 'Date', ylabel='S&P500 Log Returns (%)')
+ax.yaxis.set_major_formatter(plt_pct_fmt)
+# ax.yaxis.set_ticklabels([])
+plt.tight_layout()
+
+name = graph_out + '/SP_Data_Plot.png'
+
+if show_plots:
+	plt.show()
+else:
+	plt.savefig(name)
+	plt.close()
